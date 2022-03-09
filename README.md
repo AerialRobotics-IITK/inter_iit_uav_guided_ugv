@@ -44,4 +44,5 @@ After
 <env name="GAZEBO_RESOURCE_PATH"    value="${GAZEBO_RESOURCE_PATH}:$(find interiit22)/models:$(arg ardupilot_gazebo_path)/models"/>
 <param name="robot_description" textfile="$(arg car_model)"/>
 ```
----
+
+2. Depth camera topics not present : Delete **gimbal_small2d** model from the **.gazebo** folder in home.
