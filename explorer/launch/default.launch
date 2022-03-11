@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="world_name" default="testing_world1"/>
+    <arg name="ardupilot_path" default="$HOME/drdo_ws/src/ardupilot"/>
+    <arg name="ardupilot_gazebo_path" default="~/drdo_ws/src/ardupilot_gazebo"/>
+    <arg name="gui" default="true"/>
+    <arg name="verbose" default="true"/>
+
+    <include file="$(find interiit22)/launch/drdo_world1.launch"/>
+       
+
+    <node pkg="explorer" type="sim_vehicle.sh" name="sim_vehicle_node"/>
+
+</launch>

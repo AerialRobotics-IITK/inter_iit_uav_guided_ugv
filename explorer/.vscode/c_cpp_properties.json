@@ -1,0 +1,55 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/varun/ros/catkin_ws/devel/include/**",
+        "/home/varun/ros/mpc_ws/devel/include/**",
+        "/home/varun/ros/drdo_ws/devel/include/**",
+        "/home/varun/ros/rotors_ws/devel/include/**",
+        "/home/varun/ros/landing_ws/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/varun/ros/drdo_ws/src/inter_iit_dgre_voad/active_planner/include/**",
+        "/home/varun/ros/drdo_ws/src/aeplanner/aeplanner/include/**",
+        "/home/varun/ros/landing_ws/src/ariitk_auto_landing/auto_landing/include/**",
+        "/home/varun/ros/drdo_ws/src/inter_iit_dgre_voad/box_detector/include/**",
+        "/home/varun/ros/drdo_ws/src/eigen_checks/include/**",
+        "/home/varun/ros/drdo_ws/src/inter_iit_dgre_voad/explorer/include/**",
+        "/home/varun/ros/landing_ws/src/gui_rosos/include/**",
+        "/home/varun/ros/drdo_ws/src/aeplanner/kdtree/include/**",
+        "/home/varun/ros/mpc_ws/src/mav_control_rw/mav_control_interface/include/**",
+        "/home/varun/ros/mpc_ws/src/mav_control_rw/mav_disturbance_observer/include/**",
+        "/home/varun/ros/mpc_ws/src/mav_control_rw/mav_linear_mpc/include/**",
+        "/home/varun/ros/mpc_ws/src/mav_control_rw/mav_lowlevel_attitude_controller/include/**",
+        "/home/varun/ros/drdo_ws/src/mav_comm/mav_msgs/include/**",
+        "/home/varun/ros/mpc_ws/src/mav_control_rw/mav_nonlinear_mpc/include/**",
+        "/home/varun/ros/drdo_ws/src/mav_comm/mav_planning_msgs/include/**",
+        "/home/varun/ros/landing_ws/src/mav_trajectory_generation/mav_trajectory_generation/include/**",
+        "/home/varun/ros/landing_ws/src/mav_trajectory_generation/mav_trajectory_generation_example/include/**",
+        "/home/varun/ros/landing_ws/src/mav_trajectory_generation/mav_trajectory_generation_ros/include/**",
+        "/home/varun/ros/landing_ws/src/mav_trajectory_generation/mav_visualization/include/**",
+        "/home/varun/ros/drdo_ws/src/minkindr/minkindr/include/**",
+        "/home/varun/ros/drdo_ws/src/minkindr_ros/minkindr_conversions/include/**",
+        "/home/varun/ros/rotors_ws/src/nlopt/include/**",
+        "/home/varun/ros/drdo_ws/src/numpy_eigen/include/**",
+        "/home/varun/ros/landing_ws/src/qt_interface/include/**",
+        "/home/varun/ros/rotors_ws/src/rotors_simulator/rotors_control/include/**",
+        "/home/varun/ros/rotors_ws/src/rotors_simulator/rotors_gazebo_plugins/include/**",
+        "/home/varun/ros/rotors_ws/src/rotors_simulator/rotors_hil_interface/include/**",
+        "/home/varun/ros/rotors_ws/src/rotors_simulator/rotors_joy_interface/include/**",
+        "/home/varun/ros/drdo_ws/src/aeplanner/rrtplanner/include/**",
+        "/home/varun/ros/catkin_ws/src/ros_tutorials/turtlesim/include/**",
+        "/home/varun/ros/landing_ws/src/user_interface/include/**",
+        "/home/varun/ros/drdo_ws/src/voxblox/voxblox/include/**",
+        "/home/varun/ros/drdo_ws/src/voxblox/voxblox_ros/include/**",
+        "/home/varun/ros/drdo_ws/src/voxblox/voxblox_rviz_plugin/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}
