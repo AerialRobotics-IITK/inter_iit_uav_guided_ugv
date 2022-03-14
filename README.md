@@ -46,3 +46,18 @@ After
 ```
 
 2. Depth camera topics not present : Delete **gimbal_small2d** model from the **.gazebo** folder in home.
+---
+
+## Running the simulation environment
+
+1. The current files have paths set in accordance with the assumption that you have your ardupilot and ardupilot_gazebo in the home directory. If otherwise, head over to world.launch and change the ardupilot_gazebo_path.
+
+2. Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close
+
+3. Start the launch file world.launch for world1 and in another terminal launch 
+```
+sim_vehicle.py -v ArduCopter -f gazebo-iris
+```
+4. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
+
+---

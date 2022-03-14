@@ -152,7 +152,7 @@
         <plugin name="depth_controller" filename="libgazebo_ros_openni_kinect.so">
           <baseline>0.2</baseline>
           <alwaysOn>true</alwaysOn>
-          <updateRate>10.0</updateRate>
+          <updateRate>20.0</updateRate>
           <cameraName>depth_camera</cameraName>
           <imageTopicName>/depth_camera/rgb/image_raw</imageTopicName>
           <cameraInfoTopicName>/depth_cameracamera/color/camera_info</cameraInfoTopicName>
@@ -161,7 +161,7 @@
           <pointCloudTopicName>depth/points</pointCloudTopicName>
           <frameName>camera_link_optical</frameName>
           <pointCloudCutoff>0.4</pointCloudCutoff>
-          <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+          <pointCloudCutoffMax>20.0</pointCloudCutoffMax>
           <distortionK1>0.0</distortionK1>
           <distortionK2>0.0</distortionK2>
           <distortionK3>0.0</distortionK3>
