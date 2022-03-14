@@ -2,6 +2,7 @@
     <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
       <arg name="gui" default="true"/>
       <arg name="car_model" default="$(find prius_description)/urdf/prius.urdf"/>
+	<arg name="world_name" default="drdo_world1"/>
 
 	<arg name="ardupilot_gazebo_path" default="~/ardupilot_gazebo"/>
 	<arg name="verbose" default="true"/>
