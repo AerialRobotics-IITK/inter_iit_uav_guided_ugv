@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-    <include file="$(find interiit22)/launch/world.launch">
-    </include>
+    <!-- <include file="$(find interiit22)/launch/world.launch">
+    </include> -->
 
     <node pkg="prius_detector" type="prius_detector_node" name="prius_detector_node"       output="screen">
             <rosparam file="$(find prius_detector)/cfg/params.yaml" />
-            <remap from="image_raw"    to="camera_rgb/image_raw" />
+            <!-- <remap from="image_raw"    to="/depth_camera/depth/image_raw" /> -->
     </node>
 
 </launch>

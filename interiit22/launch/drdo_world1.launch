@@ -37,6 +37,7 @@
           <arg name="tgt_component" value="$(arg tgt_component)" />
           <arg name="log_output" value="$(arg log_output)" />
       </include>
+      <include file="$(find prius_detector)/launch/default.launch"/>
 
       <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -x -12.220319 -y 308.976703 -z 22.295580 -R 0.011338 -P 0.135709 -Y -2.161422 -model prius"/>
   </launch>

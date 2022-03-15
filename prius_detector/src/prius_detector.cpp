@@ -8,7 +8,7 @@ void PriusDetectorNode::init(ros::NodeHandle& nh) {
     int canny_lower, canny_upper, canny_ker;
     int min_contour_area;
 
-    img_sub_ = nh.subscribe("image_raw", 1, &PriusDetectorNode::imageCallback, this);
+    img_sub_ = nh.subscribe("/depth_camera/depth/image_raw", 1, &PriusDetectorNode::imageCallback, this);
 
     ros::NodeHandle nh_private("~");
 
@@ -73,16 +73,43 @@ void PriusDetectorNode::run() {
 }
 
 void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImagePtr cv_ptr_;
+    // cv_bridge::CvImagePtr cv_ptr_;
+    // try {
+    //     // const std::string& encoding = std::string();
+    //     // cv_ptr_ = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+        
+    //     cv_ptr_ = cv_bridge::vkCmdCopyImageToBuffer(msg,sensor_msgs::image_encodings::BGR8);
+    // } 
+    // catch (cv_bridge::Exception& e) {
+    //     ROS_ERROR("cv_bridge exception: %s", e.what());
+    //     return;
+    // }
 
-    try {
-        cv_ptr_ = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    } catch (cv_bridge::Exception& e) {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
+    // img_ = cv_ptr_->image;
+    // ROS_INFO("ok here we are ",msg);
+
+    float* depths = (float*)(&msg->data[0]);
+
+    // Image coordinates of the center pixel
+    // int u = msg->width / 2;
+    // int v = msg->height / 2;
+
+    // Linear index of the center pixel
+    // int centerIdx = u + msg->width * v;
+    // cv::Mat src = cv::Mat(msg->height,msg->width,CV_8UCV_8U);
+
+    uint8_t img[msg->height][msg->width];
+    int i;
+    int j;
+    for(i = 0; i <msg->height; i++) {
+        for(j = 0; j <msg->width; j++) {
+            std::cout <<  depths[j + msg->width*i] << " ";
+            img[i][j] = depths[j + msg->width*i];
+        }
     }
-
-    img_ = cv_ptr_->image;
+    cv::Mat src = cv::Mat(msg->height,msg->width,CV_8U,&img);
+    // std::cout << src<<std::endl;
+        // img_ is cv:Mat
 }
 
 }  // namespace interiit22::prius_detection
