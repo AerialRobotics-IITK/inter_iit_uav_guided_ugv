@@ -10,4 +10,6 @@
   <exec_depend>message_runtime</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>joy</exec_depend>
+
+  <build_depend>prius_msgs</build_depend>
 </package>
