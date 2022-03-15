@@ -1,0 +1,11 @@
+h_min: 100               # Minimum value of hue.
+s_min: 20                # Minimum value of saturation.
+v_min: 20                # Minimum value of value.
+h_max: 120               # Maximum value of hue.
+s_max: 200               # Maximum value of saturation.
+v_max: 200               # Maximum value of value.
+canny_lower: 200         # Lower bound for canny edge.
+canny_upper: 300         # Upper bound for canny edge.
+canny_ker: 3             # Size of the kernel used for Canny edge detection
+min_contour_area: 800    # Minimum area of the contour, used for filtering.
+verbose: true            # Used for debugging purposes.
