@@ -60,4 +60,17 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris
 ```
 4. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
 
----
+## Run Using offboard
+
+`roslaunch offboard default.launch`
+
+Wait until this print on the terminal
+
+```
+[ INFO] [1647367092.856149039, 63.285000000]: FCU: EKF2 IMU0 is using GPS
+[ INFO] [1647367092.857438349, 63.286000000]: FCU: EKF2 IMU1 is using GPS
+```
+
+then launch
+
+`roslaunch offboard offboard_node.launch`

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+   
+    <node pkg="offboard" type="offboard_node" name="offboard_node" output="screen">
+        <rosparam file="$(find offboard)/cfg/params.yaml" />
+        <remap from="odom"    to="/mavros/local_position/odom" />
+        <remap from="setpoint"    to="/mavros/setpoint_position/local" />
+    </node>
+
+</launch>
