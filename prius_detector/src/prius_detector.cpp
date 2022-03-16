@@ -89,7 +89,7 @@ void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     {
         //Always copy, returning a mutable CvImage
         //OpenCV expects color images to use BGR channel order.
-        cv_ptr = cv_bridge::toCvCopy(msg);
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -98,16 +98,19 @@ void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
         return;
     }
 
+    // cv_ptr->encoding = "16UC1";
+    // cv_ptr->image = cv::convertedDepthImg;
     //Copy the image.data to imageBuf.
     img_ = cv_ptr->image;
-    cv::namedWindow("img_1");
+    // cv::namedWindow("img_1");
     cv::imshow("img_1", img_);
+    cv::normalize(img_, img_, 0, 255, cv::NORM_MINMAX);
     cv::convertScaleAbs(img_, img_, 100, 0.0);
-    // img_.convertTo(img_, CV_8UC1);
-    // depthToCV8UC1(depth_float_img, depth_mono8_img);
-    cv::namedWindow("img");
+    // // img_.convertTo(img_, CV_8UC1);
+    // // depthToCV8UC1(depth_float_img, depth_mono8_img);
+    // cv::namedWindow("img");
     cv::imshow("img", img_);
-    cv::waitKey(3);
+    // cv::waitKey(3);
     // img_ = src;
 }
 
