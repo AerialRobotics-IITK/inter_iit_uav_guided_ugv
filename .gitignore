@@ -1,1 +1,7 @@
 .vscode/
+**/*.parm
+**/*.bin
+**/*.tlog
+**/*.raw
+**/terrain
+**/logs
