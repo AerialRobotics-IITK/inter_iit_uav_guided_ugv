@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
     ros::Rate loop_rate(20);
 
     while (ros::ok()) {
-        detect.run();
         ros::spinOnce();
+        detect.run();
         loop_rate.sleep();
     }
 
