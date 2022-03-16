@@ -73,7 +73,6 @@ void PriusDetectorNode::run() {
 }
 
 void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    
     // int h = msg->height;
     // int w = msg->width*4;
     // uint8_t img[h][w];
@@ -84,34 +83,26 @@ void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     // }
     // cv::Mat src = cv::Mat(h,w/4,CV_8UC1,&img);
     cv_bridge::CvImagePtr cv_ptr;
-    //Convert from the ROS image message to a CvImage suitable for working with OpenCV for processing
-    try
-    {
-        //Always copy, returning a mutable CvImage
-        //OpenCV expects color images to use BGR channel order.
+    // Convert from the ROS image message to a CvImage suitable for working with OpenCV for processing
+    try {
+        // Always copy, returning a mutable CvImage
+        // OpenCV expects color images to use BGR channel order.
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        //if there is an error during conversion, display it
+    } catch (cv_bridge::Exception& e) {
+        // if there is an error during conversion, display it
         ROS_ERROR("tutorialROSOpenCV::main.cpp::cv_bridge exception: %s", e.what());
         return;
     }
 
-    // cv_ptr->encoding = "16UC1";
-    // cv_ptr->image = cv::convertedDepthImg;
-    //Copy the image.data to imageBuf.
-    img_ = cv_ptr->image;
-    // cv::namedWindow("img_1");
-    cv::imshow("img_1", img_);
+    // Copy the image.data to imageBuf.
+    // img_ = cv_ptr->image;
+    cv::Mat temp_img = cv_ptr->image;
+    cv::cvtColor(temp_img, img_, cv::COLOR_GRAY2RGB);
     cv::normalize(img_, img_, 0, 255, cv::NORM_MINMAX);
-    cv::convertScaleAbs(img_, img_, 100, 0.0);
-    // // img_.convertTo(img_, CV_8UC1);
-    // // depthToCV8UC1(depth_float_img, depth_mono8_img);
-    // cv::namedWindow("img");
+    cv::convertScaleAbs(img_, img_, 1, 0.0);
+    cv::namedWindow("img");
     cv::imshow("img", img_);
-    // cv::waitKey(3);
-    // img_ = src;
+    cv::waitKey(3);
 }
 
 }  // namespace interiit22::prius_detection
