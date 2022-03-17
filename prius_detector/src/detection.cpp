@@ -74,7 +74,7 @@ void imageProcessing() {
     // ! Display
     cv::imshow("Original", img_);
     cv::imshow("Center Detection", drawing);
-    cv::waitKey(0);
+    cv::waitKey(1);
     // cv::destroyAllWindows();
     return;
 }
@@ -97,13 +97,14 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
     // Copy the image.data to imageBuf.
     img_ = cv_ptr->image;
+    std::cout<<img_<<std::endl;
     // cv::Mat temp_img = cv_ptr->image;
     // cv::cvtColor(temp_img, img_, cv::COLOR_GRAY2RGB);
     cv::normalize(img_, img_, 0, 255, cv::NORM_MINMAX);
     cv::convertScaleAbs(img_, img_, 1, 0.0);
 	cv::namedWindow("img_");
     cv::imshow("img_", img_);
-	cv::waitKey(3);
+	cv::waitKey(1);
 
 }
 
