@@ -1,24 +1,23 @@
+#include <cv_bridge/cv_bridge.h>
+#include <detector_msgs/Centre.h>
+#include <detector_msgs/Corners.h>
+#include <image_transport/image_transport.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+
 #include <iostream>
-#include <string>
-#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <utility>
+#include <vector>
 
-int main(){
 
-    //! Basic introduction..
-    std::string imagePath = "image.png";
-    cv::Mat img = cv::imread(imagePath,cv::IMREAD_GRAYSCALE);
-    if(img.empty()) {
-        std::cout << "Could not read the image: " << imagePath << std::endl;
-        return -1;
-    }
+cv::Mat img_;
 
-    //! Convert to grayscale
-    cv::Mat gray = img;
-    // cv::cvtColor(img, gray, CV_BGR2GRAY);
+void imageProcessing() {
 
-    //! compute mask (you could use a simple threshold if the image is always as good as the one you provided)
-    cv::Mat mask;
-    cv::threshold(gray, mask, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+	cv::Mat mask;
+    cv::threshold(img_, mask, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
     //! Finding contours..
     std::vector<std::vector<cv::Point>> contours;
@@ -29,6 +28,8 @@ int main(){
     int biggestContourIdx = -1;
     float biggestContourArea = 0;
     cv::Mat drawing = cv::Mat::zeros( mask.size(), CV_8UC1 );
+    // cv::imshow("second draw drawing", drawing);
+
 
     for (int i = 0; i< contours.size(); i++){
         cv::Scalar color = cv::Scalar(0, 100, 0);
@@ -44,15 +45,13 @@ int main(){
     //! If no contour found
     if(biggestContourIdx < 0){
         std::cout << "No contour found..\n";
-        return -1;
+        return;
     }
 
     //! compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
     cv::RotatedRect boundingBox = cv::minAreaRect(contours[biggestContourIdx]);
 
     //one thing to remark: this will compute the OUTER boundary box, so maybe you have to erode/dilate if you want something between the ragged lines
-
-
 
     //! Draw the rotated rect
     cv::Point2f corners[4];
@@ -72,11 +71,56 @@ int main(){
     center.y /= 4;
     cv::circle(drawing, center, 2, cv::Scalar(255,255,255), 2);
 
-    //! Display
-    cv::imshow("Original", img);
+    // ! Display
+    cv::imshow("Original", img_);
     cv::imshow("Center Detection", drawing);
     cv::waitKey(0);
-    cv::destroyAllWindows();
+    // cv::destroyAllWindows();
+    return;
+}
 
-    return 0;
+void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+
+	cv_bridge::CvImagePtr cv_ptr;
+    // Convert from the ROS image message to a CvImage suitable for working with OpenCV for processing
+    try {
+        // Always copy, returning a mutable CvImage
+        // OpenCV expects color images to use BGR channel order.
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+    } 
+	
+	catch (cv_bridge::Exception& e) {
+        // if there is an error during conversion, display it
+        ROS_ERROR("tutorialROSOpenCV::main.cpp::cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    // Copy the image.data to imageBuf.
+    img_ = cv_ptr->image;
+    // cv::Mat temp_img = cv_ptr->image;
+    // cv::cvtColor(temp_img, img_, cv::COLOR_GRAY2RGB);
+    cv::normalize(img_, img_, 0, 255, cv::NORM_MINMAX);
+    cv::convertScaleAbs(img_, img_, 1, 0.0);
+	cv::namedWindow("img_");
+    cv::imshow("img_", img_);
+	cv::waitKey(3);
+
+}
+
+int main(int argc, char** argv) {
+
+	ros::init(argc, argv, "prius_detector_node");
+    ros::NodeHandle nh;
+
+	ros::Subscriber img_sub_ = nh.subscribe("/depth_camera/depth/image_raw", 10,imageCallback);
+	ros::Publisher contour_pub_ = nh.advertise<sensor_msgs::Image>("contours", 10);
+
+
+	ros::Rate loop_rate(20);
+	while (ros::ok()) {
+		ros::spinOnce();
+		imageProcessing();
+		loop_rate.sleep();
+	}
+
 }
