@@ -14,6 +14,7 @@ class PriusDetectorNode {
   public:
     void init(ros::NodeHandle& nh);
     void run();
+    void get_prius_coordinates();
 
   private:
     void imageCallback(const sensor_msgs::ImageConstPtr& msg);

@@ -49,6 +49,7 @@ class PriusDetector {
     double min_contour_area_;
     double distance_;
     double area_;
+    int threshold_min_,threshold_max_;
 };
 
 }  // namespace interiit22::prius_detection
