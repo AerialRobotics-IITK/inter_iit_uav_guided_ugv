@@ -13,7 +13,7 @@ from std_msgs.msg import String
 # Subscribed topic - base_pose_ground_truth , cmd_vel, cmd_delta
 
 global pub
-tar_vel = 10
+tar_vel = 5
 global tar_omega
 global tar_delta
 gear_stat = "F"
@@ -30,9 +30,8 @@ steering_angle = 0  # steering angle in degrees
 kp = 1000.0  # proportional gain
 ki = 1.5  # integral gain
 kd = 1.8  # differential gain
-acc_thershold = 0  # threshold for acceleration
-brake_threshold = 20000  # threshold for brake
-
+acc_thershold = 10  # threshold for acceleration
+brake_threshold = 20  # threshold for brake
 
 
 def prius_pub(data):
