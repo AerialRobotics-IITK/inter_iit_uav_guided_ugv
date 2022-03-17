@@ -20,6 +20,8 @@ class PriusDetectorNode {
     void imageCallback(const sensor_msgs::ImageConstPtr& msg);
 
     cv::Mat img_;
+    int threshold_min_;
+    int threshold_max_;
 
     ros::Subscriber img_sub_;
     ros::Publisher centre_pub_;
