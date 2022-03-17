@@ -9,3 +9,5 @@ canny_upper: 300         # Upper bound for canny edge.
 canny_ker: 3             # Size of the kernel used for Canny edge detection
 min_contour_area: 800    # Minimum area of the contour, used for filtering.
 verbose: true            # Used for debugging purposes.
+threshold_min: 100
+threshold_max: 255

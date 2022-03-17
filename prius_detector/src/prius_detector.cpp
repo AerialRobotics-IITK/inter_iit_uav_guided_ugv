@@ -1,4 +1,6 @@
 #include <prius_detector/prius_detector.hpp>
+#include <string>
+#include <opencv2/opencv.hpp>
 
 namespace interiit22::prius_detection {
 
@@ -22,6 +24,8 @@ void PriusDetectorNode::init(ros::NodeHandle& nh) {
     nh_private.getParam("canny_upper", canny_upper);
     nh_private.getParam("canny_ker", canny_ker);
     nh_private.getParam("min_contour_area", min_contour_area);
+    nh_private.getParam("threshold_min", threshold_min_);
+    nh_private.getParam("threshold_max", threshold_max_);
 
     detect_.setHSVMin(h_min, s_min, v_min);
     detect_.setHSVMax(h_max, s_max, v_max);
@@ -39,40 +43,42 @@ void PriusDetectorNode::run() {
         return;
     }
 
-    // detect_.thresholdImage(img_);
-    // detect_.findGoodContours();
-    // detect_.drawContours(img_);
-    // detect_.fitRect(img_);
+    detect_.thresholdImage(img_);
+    detect_.findGoodContours();
+    detect_.drawContours(img_);
+    detect_.fitRect(img_);
 
-    // std::pair<int, int> centre_pair = detect_.getCentre();
-    // double distance = detect_.getDistance();
-    // double area = detect_.getArea();
-    // centre_coord_.x = centre_pair.first;
-    // centre_coord_.y = centre_pair.second;
-    // centre_coord_.d = (float) distance;
-    // centre_coord_.a = (float) area;
-    // centre_coord_.header.stamp = ros::Time::now();
+    std::pair<int, int> centre_pair = detect_.getCentre();
+    double distance = detect_.getDistance();
+    double area = detect_.getArea();
+    centre_coord_.x = centre_pair.first;
+    centre_coord_.y = centre_pair.second;
+    centre_coord_.d = (float) distance;
+    centre_coord_.a = (float) area;
+    centre_coord_.header.stamp = ros::Time::now();
 
-    // cv::Point2f* corners = detect_.getCorners();
-    // rect_corners_.c1_x = corners[0].x;
-    // rect_corners_.c1_y = corners[0].y;
-    // rect_corners_.c2_x = corners[1].x;
-    // rect_corners_.c2_y = corners[1].y;
-    // rect_corners_.c3_x = corners[2].x;
-    // rect_corners_.c3_y = corners[2].y;
-    // rect_corners_.c4_x = corners[3].x;
-    // rect_corners_.c4_y = corners[3].y;
+    cv::Point2f* corners = detect_.getCorners();
+    rect_corners_.c1_x = corners[0].x;
+    rect_corners_.c1_y = corners[0].y;
+    rect_corners_.c2_x = corners[1].x;
+    rect_corners_.c2_y = corners[1].y;
+    rect_corners_.c3_x = corners[2].x;
+    rect_corners_.c3_y = corners[2].y;
+    rect_corners_.c4_x = corners[3].x;
+    rect_corners_.c4_y = corners[3].y;
 
-    // sensor_msgs::ImagePtr thresh_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", detect_.getThresh()).toImageMsg();
+    sensor_msgs::ImagePtr thresh_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", detect_.getThresh()).toImageMsg();
     sensor_msgs::ImagePtr contour_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", img_).toImageMsg();
 
-    // thresh_pub_.publish(thresh_msg);
+    thresh_pub_.publish(thresh_msg);
     contour_pub_.publish(contour_msg);
-    // centre_pub_.publish(centre_coord_);
-    // corners_pub_.publish(rect_corners_);
+    centre_pub_.publish(centre_coord_);
+    corners_pub_.publish(rect_corners_);
 }
 
 void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+
+    
     // int h = msg->height;
     // int w = msg->width*4;
     // uint8_t img[h][w];
@@ -95,14 +101,77 @@ void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     }
 
     // Copy the image.data to imageBuf.
-    // img_ = cv_ptr->image;
-    cv::Mat temp_img = cv_ptr->image;
-    cv::cvtColor(temp_img, img_, cv::COLOR_GRAY2RGB);
+    img_ = cv_ptr->image;
+    // cv::Mat temp_img = cv_ptr->image;
+    // cv::cvtColor(temp_img, img_, cv::COLOR_GRAY2RGB);
     cv::normalize(img_, img_, 0, 255, cv::NORM_MINMAX);
     cv::convertScaleAbs(img_, img_, 1, 0.0);
-    cv::namedWindow("img");
-    cv::imshow("img", img_);
-    cv::waitKey(3);
+    cv::imshow("first draw img_", img_);
+
+
+    //! compute mask (you could use a simple threshold if the image is always as good as the one you provided)
+
+    cv::Mat mask;
+    cv::threshold(img_, mask, threshold_min_, threshold_max_, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+
+    //! Finding contours..
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(mask,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
+    //! Draw contours and find biggest contour (if there are other contours in the image, assuming the biggest one is the desired rect)
+    int biggestContourIdx = -1;
+    float biggestContourArea = 0;
+    cv::Mat drawing = cv::Mat::zeros( mask.size(), CV_8UC3 );
+    cv::imshow("second draw drawing", drawing);
+
+
+    for (int i = 0; i< contours.size(); i++){
+        cv::Scalar color = cv::Scalar(0, 100, 0);
+        drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+        float ctArea= cv::contourArea(contours[i]);
+        if (ctArea > biggestContourArea){
+            biggestContourArea = ctArea;
+            biggestContourIdx = i;
+        }
+    }
+
+    //! If no contour found
+    if(biggestContourIdx < 0){
+        std::cout << "No contour found..\n";
+        return;
+    }
+
+    //! compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
+    cv::RotatedRect boundingBox = cv::minAreaRect(contours[biggestContourIdx]);
+
+    //one thing to remark: this will compute the OUTER boundary box, so maybe you have to erode/dilate if you want something between the ragged lines
+
+    //! Draw the rotated rect
+    cv::Point2f corners[4];
+    boundingBox.points(corners);
+    cv::line(drawing, corners[0], corners[1], cv::Scalar(255,255,255));
+    cv::line(drawing, corners[1], corners[2], cv::Scalar(255,255,255));
+    cv::line(drawing, corners[2], corners[3], cv::Scalar(255,255,255));
+    cv::line(drawing, corners[3], corners[0], cv::Scalar(255,255,255));
+    
+    //! Draw center point..
+    cv::Point2f center;
+    for (int i=0; i<4; i++){
+        center.x += corners[i].x;
+        center.y += corners[i].y;
+    } 
+    center.x /= 4;
+    center.y /= 4;
+    cv::circle(drawing, center, 2, cv::Scalar(255,255,255), 2);
+
+    //! Display
+    cv::imshow("Original", img_);
+    cv::imshow("Center Detection", drawing);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+    return;
 }
 
 }  // namespace interiit22::prius_detection

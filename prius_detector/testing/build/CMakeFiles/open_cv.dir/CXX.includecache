@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/adi/Aerial_Robotics/drdo22_ws/src/inter_iit_uav_guided_ugv/interiit22/testing/open_cv.cpp
+iostream
+-
+string
+-
+opencv2/opencv.hpp
+-
+
