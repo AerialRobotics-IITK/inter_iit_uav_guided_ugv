@@ -108,11 +108,11 @@ void PriusDetectorNode::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     cv::convertScaleAbs(img_, img_, 1, 0.0);
     cv::imshow("first draw img_", img_);
 
-
+    std::cerr<<"here";
     //! compute mask (you could use a simple threshold if the image is always as good as the one you provided)
 
     cv::Mat mask;
-    cv::threshold(img_, mask, threshold_min_, threshold_max_, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    cv::threshold(img_, mask, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
     //! Finding contours..
     std::vector<std::vector<cv::Point>> contours;
