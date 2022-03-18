@@ -15,6 +15,7 @@
 cv::Mat img_;
 cv::Mat depth(img_.size(), img_.type());
 
+// !for debuging
 std::string type2str(int type) {
   std::string r;
 
@@ -168,7 +169,6 @@ int main(int argc, char** argv) {
 
 	ros::Subscriber img_sub_ = nh.subscribe("/depth_camera/depth/image_raw", 10,imageCallback);
 	ros::Publisher contour_pub_ = nh.advertise<sensor_msgs::Image>("contours", 10);
-
 
 	ros::Rate loop_rate(20);
 	while (ros::ok()) {
