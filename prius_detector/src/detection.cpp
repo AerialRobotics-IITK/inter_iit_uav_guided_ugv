@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+using namespace std;
+using namespace cv;
 
 cv::Mat img_;
 cv::Mat depth(img_.size(), img_.type());
@@ -39,6 +41,7 @@ std::string type2str(int type) {
   return r;
 }
 
+cv::Scalar color = cv::Scalar(255, 255, 255);
 cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& points )
 {
     // some pre-condition:
@@ -53,46 +56,69 @@ cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& poin
 
 void imageProcessing(cv::Mat &depth) {
 // void imageProcessing() {
-	cv::Mat mask;
-    cv::threshold(img_, mask, 0, 60, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    ros::NodeHandle nh;
+    int hull_param;
+    int thres_max;
+    int thres_min;
 
-    //! Finding contours..
+    nh.getParam("hull_param", hull_param);
+    nh.getParam("thres_max", thres_max);
+    nh.getParam("thres_min", thres_min);
+
+	cv::Mat mask;
+    cv::threshold(img_, mask, thres_min, thres_max,CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+
+    // Finding contours..
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     cv::findContours(mask,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-    //! Draw contours and find biggest contour (if there are other contours in the image, assuming the biggest one is the desired rect)
-    int biggestContourIdx = -1;
-    float biggestContourArea = 0;
+    int car_hull;
     cv::Mat drawing = cv::Mat::zeros( mask.size(), CV_8UC1 );
-    // cv::imshow("second draw drawing", drawing);
-
-
-    cv::Scalar color = cv::Scalar(255, 255, 255);
-    drawContours( drawing, contours, -1, color, 1, 8, hierarchy, 1, cv::Point() );
-    for (int i = 0; i< contours.size(); i++){
-        // std::cout<<"here";
-        float ctArea= cv::contourArea(contours[i]);
-        std::cout<<"Area of countour : "<<ctArea<<"\n";
-        if (ctArea > biggestContourArea){
-            biggestContourArea = ctArea;
-            biggestContourIdx = i;
-        }
-    }
-    std::cout<<"--------------------------------\n";
-
-    //! If no contour found
+    vector< vector<Point> > hull(contours.size());
     if(contours.size() == 0){
         std::cout << "No contour found..\n";
         return;
     }
+    for(int i = 0; i < contours.size(); i++){
+        convexHull(Mat(contours[i]), hull[i], false);
+        std::cout<<"hull "<<i<<" : "<<hull[i].size();
+        if(hull.size()==0){
+            std::cout << "No hull found..\n";
+            return;
+        }
+        else if(15<hull[i].size()&&hull[i].size()<40){
+            car_hull = i;
+            drawContours( drawing, hull, i, color, 1, 8 );
+        }
+    }
 
-    //! compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
-    cv::RotatedRect boundingBox = cv::minAreaRect(contours[biggestContourIdx]);
+    // Draw contours and find biggest contour (if there are other contours in the image, assuming the biggest one is the desired rect)
+    // int biggestContourIdx = -1;
+    // float biggestContourArea = 0;
+    // cv::imshow("second draw drawing", drawing);
+
+    
+    drawContours( drawing, contours, -1, color, 1, 8, hierarchy, 1, cv::Point() );
+    // for (int i = 0; i< contours.size(); i++){
+    //     // std::cout<<"here";
+    //     float ctArea= cv::contourArea(contours[i]);
+    //     std::cout<<"Area of countour : "<<ctArea<<"\n";
+    //     if (ctArea > biggestContourArea){
+    //         biggestContourArea = ctArea;
+    //         biggestContourIdx = i;
+    //     }
+    // }
+    std::cout<<"--------------------------------\n";
+
+    // If no contour found
+
+    // compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
+    cv::RotatedRect boundingBox = cv::minAreaRect(contours[car_hull]);
 
     //one thing to remark: this will compute the OUTER boundary box, so maybe you have to erode/dilate if you want something between the ragged lines
 
-    //! Draw the rotated rect
+    // Draw the rotated rect
     cv::Point2f corners[4];
 
     // Extracting corners of the bounding box
@@ -102,7 +128,7 @@ void imageProcessing(cv::Mat &depth) {
     cv::line(mask, corners[2], corners[3], cv::Scalar(255,255,255));
     cv::line(mask, corners[3], corners[0], cv::Scalar(255,255,255));
     
-    //! Draw center point..
+    // Draw center point..
     cv::Point2f center;
     for (int i=0; i<4; i++){
         center.x += corners[i].x;
@@ -115,7 +141,7 @@ void imageProcessing(cv::Mat &depth) {
     
     cv::circle(mask, center, 2, cv::Scalar(255,255,255), 2);
 
-    // ! Display
+    // Display
     cv::imshow("Original", mask);
     cv::imshow("Center Detection", drawing);
     cv::waitKey(1);

@@ -4,3 +4,6 @@ camera_matrix: [554.254691191187, 0.0, 320.5, 0.0, 554.254691191187, 240.5, 0.0,
 verbose: true              # Make it true for debugging purposes.
 image_height: 480
 image_width: 640
+hull_param: 4
+thres_max: 100
+thres_min: 0
