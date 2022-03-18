@@ -72,6 +72,10 @@
   <exec_depend>sensor_msgs</exec_depend>
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>nav_msgs</depend>
+  <depend>eigen_conversions</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

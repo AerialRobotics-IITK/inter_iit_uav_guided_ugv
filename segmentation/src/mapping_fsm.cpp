@@ -16,11 +16,34 @@ MappingFSM::MappingFSM() {
     close_to_obj_ = false;
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
+
+    // set parameters
+    nh_.getParam("camera_matrix", camera_matrix_);
+    nh_.getParam("cam_to_quad_rot", camera_to_quad_matrix_);
+    nh_.getParam("t_cam", camera_translation_);
+
+    arrayToMatrixConversion();
 }
 
-void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector3f& possible_obj) {
+void MappingFSM::arrayToMatrixConversion() {
+
+    for (int i = 0; i < 3; i++) {
+        camera_translation_vector_(i) = camera_translation_[i];
+        for (int j = 0; j < 3; j++) {
+            cameraToQuadMatrix(i, j) = camera_to_quad_matrix_[3 * i + j];
+            cameraMatrix(i,j) = camera_matrix_[3 * i + j];
+        }
+    }
+
+    invCameraMatrix = cameraMatrix.inverse();
+}
+
+void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector3d& possible_obj) {
     // possible_obj contains the waypoint coordinates in the global frame
-    // TODO
+    
+    Eigen::Vector3d camera_frame_coordinates(msg.x, msg.y, msg.z);
+    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * camera_frame_coordinates + camera_translation_vector_;
+    possible_obj = quadOrientationMatrix * quad_frame_coordinates + translation_;
 }
 
 void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
@@ -64,14 +87,22 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     return;
 }
 
-void MappingFSM::odomCallback(const geometry_msgs::Pose& msg) {
-    coord_drone_(0) = msg.position.x;
-    coord_drone_(1) = msg.position.y;
-    coord_drone_(2) = msg.position.z;
-    quaternion_drone_.x() = msg.orientation.x;
-    quaternion_drone_.y() = msg.orientation.y;
-    quaternion_drone_.z() = msg.orientation.z;
-    quaternion_drone_.w() = msg.orientation.w;
+void MappingFSM::odomCallback(const nav_msgs::Odometry& msg) {
+    coord_drone_(0) = msg.pose.pose.position.x;
+    coord_drone_(1) = msg.pose.pose.position.y;
+    coord_drone_(2) = msg.pose.pose.position.z;
+    quaternion_drone_.x() = msg.pose.pose.orientation.x;
+    quaternion_drone_.y() = msg.pose.pose.orientation.y;
+    quaternion_drone_.z() = msg.pose.pose.orientation.z;
+    quaternion_drone_.w() = msg.pose.pose.orientation.w;
+
+
+    tf::Quaternion q(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
+                   msg.pose.pose.orientation.z, msg.pose.pose.orientation.w);
+    Eigen::Quaterniond quat = Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z());
+    quadOrientationMatrix = quat.normalized().toRotationMatrix().inverse();
+    translation_ = Eigen::Vector3d(msg.pose.pose.position.x, msg.pose.pose.position.y,
+                      msg.pose.pose.position.z);
 }
 
 }  // namespace mapping_fsm

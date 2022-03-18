@@ -16,12 +16,16 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   message_generation
+  tf
+  tf_conversions
+  nav_msgs
+  eigen_conversions
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(Eigen3 REQUIRED)
-include_directories($(Eigen_INCLUDE_DIRS))
+# find_package(Eigen3 REQUIRED)
+# include_directories($(Eigen_INCLUDE_DIRS))
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
