@@ -4,7 +4,7 @@ import rospy
 from gazebo_msgs.msg import ModelStates
 import csv
 
-csv_file = open("world2.csv", "w+")
+csv_file = open("world1.csv", "w+")
 c = csv.writer(csv_file)
 time = 0
 
