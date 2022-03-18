@@ -54,15 +54,15 @@ cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& poin
     return res;
 }
 
+int thres_max = 200;
 void imageProcessing(cv::Mat &depth) {
 // void imageProcessing() {
     ros::NodeHandle nh;
     int hull_param;
-    int thres_max;
     int thres_min;
 
     nh.getParam("hull_param", hull_param);
-    nh.getParam("thres_max", thres_max);
+    // nh.getParam("thres_max", thres_max);
     nh.getParam("thres_min", thres_min);
 
 	cv::Mat mask;
@@ -73,7 +73,7 @@ void imageProcessing(cv::Mat &depth) {
     std::vector<cv::Vec4i> hierarchy;
     cv::findContours(mask,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-    int car_hull;
+    int car_hull = 0;
     cv::Mat drawing = cv::Mat::zeros( mask.size(), CV_8UC1 );
     vector< vector<Point> > hull(contours.size());
     if(contours.size() == 0){
@@ -114,6 +114,7 @@ void imageProcessing(cv::Mat &depth) {
     // If no contour found
 
     // compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
+    
     cv::RotatedRect boundingBox = cv::minAreaRect(contours[car_hull]);
 
     //one thing to remark: this will compute the OUTER boundary box, so maybe you have to erode/dilate if you want something between the ragged lines
@@ -138,6 +139,10 @@ void imageProcessing(cv::Mat &depth) {
     center.y /= 4;
     std::cout<<"x : "<<center.x<<" y : "<<center.y<<"\n";
     std::cout<<"depth : "<<depth.at<float>(center.x,center.y)<<"\n";
+
+    // if(depth.at<float>(center.x,center.y)>10){
+    //     thres_max = 100;
+    // }
     
     cv::circle(mask, center, 2, cv::Scalar(255,255,255), 2);
 

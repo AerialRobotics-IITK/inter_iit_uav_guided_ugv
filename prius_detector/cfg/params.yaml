@@ -5,5 +5,5 @@ verbose: true              # Make it true for debugging purposes.
 image_height: 480
 image_width: 640
 hull_param: 4
-thres_max: 100
+# thres_max: 255
 thres_min: 0
