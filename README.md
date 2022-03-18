@@ -74,3 +74,6 @@ Wait until this print on the terminal
 then launch
 
 `roslaunch offboard offboard_node.launch`
+
+##  Running the prius_controller
+Change the path of file world1.csv (/prius_controller/testing/world1.csv) in the file straight_file.py in the line 82 corresponding to the location in your PC
