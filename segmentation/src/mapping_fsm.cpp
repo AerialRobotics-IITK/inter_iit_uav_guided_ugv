@@ -10,17 +10,19 @@ MappingFSM::MappingFSM() {
     odom_sub_ = nh_.subscribe("/mavros/local_position/odom", 1, &MappingFSM::odomCallback, this);
     coord_drone_.setZero();
     quaternion_drone_.setIdentity();
+    quadOrientationMatrix.setIdentity();
     current_obj_.setZero();
     possible_obj_.setZero();
+    translation_.setZero();
     pause_count_ = 0;
     close_to_obj_ = false;
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
 
     // set parameters
-    nh_.getParam("camera_matrix", camera_matrix_);
-    nh_.getParam("cam_to_quad_rot", camera_to_quad_matrix_);
-    nh_.getParam("t_cam", camera_translation_);
+    nh_.getParam("/camera_matrix", camera_matrix_);
+    nh_.getParam("/cam_to_quad_rot", camera_to_quad_matrix_);
+    nh_.getParam("/t_cam", camera_translation_);
 
     arrayToMatrixConversion();
 }

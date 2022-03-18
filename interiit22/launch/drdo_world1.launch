@@ -5,6 +5,7 @@
 
 	<arg name="ardupilot_gazebo_path" default="~/ardupilot_gazebo"/>
 	<arg name="verbose" default="true"/>
+  <rosparam file="$(find segmentation)/cfg/params.yaml" /> 
 
 	<env name="GAZEBO_MODEL_PATH"       value="${GAZEBO_MODEL_PATH}:$(find interiit22)/models:$(arg ardupilot_gazebo_path)/models"/>
 	<env name="GAZEBO_RESOURCE_PATH"    value="${GAZEBO_RESOURCE_PATH}:$(find interiit22)/models:$(arg ardupilot_gazebo_path)/models"/>
@@ -40,4 +41,3 @@
 
       <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -x -12.220319 -y 308.976703 -z 22.295580 -R 0.011338 -P 0.135709 -Y -2.161422 -model prius"/>
   </launch>
-
