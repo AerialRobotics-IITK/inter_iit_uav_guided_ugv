@@ -54,19 +54,19 @@ cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& poin
     return res;
 }
 
-int thres_max = 200;
 void imageProcessing(cv::Mat &depth) {
 // void imageProcessing() {
     ros::NodeHandle nh;
+    int maxval;
     int hull_param;
-    int thres_min;
+    int thres;
 
     nh.getParam("hull_param", hull_param);
-    // nh.getParam("thres_max", thres_max);
-    nh.getParam("thres_min", thres_min);
+    nh.getParam("thres", thres);
+    nh.getParam("maxval", maxval);
 
 	cv::Mat mask;
-    cv::threshold(img_, mask, thres_min, thres_max,CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
     // Finding contours..
     std::vector<std::vector<cv::Point>> contours;
@@ -92,14 +92,14 @@ void imageProcessing(cv::Mat &depth) {
             drawContours( drawing, hull, i, color, 1, 8 );
         }
     }
-
+    // drawContours( drawing, hull, 1, color, 1, 8 );
     // Draw contours and find biggest contour (if there are other contours in the image, assuming the biggest one is the desired rect)
     // int biggestContourIdx = -1;
     // float biggestContourArea = 0;
     // cv::imshow("second draw drawing", drawing);
 
     
-    drawContours( drawing, contours, -1, color, 1, 8, hierarchy, 1, cv::Point() );
+    drawContours( drawing, contours, -1, color, 1, 8);
     // for (int i = 0; i< contours.size(); i++){
     //     // std::cout<<"here";
     //     float ctArea= cv::contourArea(contours[i]);
