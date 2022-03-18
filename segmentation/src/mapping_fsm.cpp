@@ -48,6 +48,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     if (pause_count_ == PAUSE_WAIT_TIME) {
         pause_count_ = 0;
         close_to_obj_ = false;
+        std::cout << "[FSM] Next Waypoint received." << std::endl;
         road_mean_path_.push_back(possible_obj_);
         way_pub_.publish(pose);
         return;
