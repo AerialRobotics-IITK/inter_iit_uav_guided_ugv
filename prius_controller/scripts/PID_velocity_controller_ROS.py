@@ -13,7 +13,7 @@ from std_msgs.msg import String
 # Subscribed topic - base_pose_ground_truth , cmd_vel, cmd_delta
 
 global pub
-tar_vel = 5
+tar_vel = 10
 global tar_omega
 global tar_delta
 gear_stat = "F"
@@ -29,7 +29,7 @@ radius = 0  # radius of path
 steering_angle = 0  # steering angle in degrees
 kp = 1000.0  # proportional gain
 ki = 1.5  # integral gain
-kd = 1.8  # differential gain
+kd = 8.0  # differential gain
 acc_thershold = 10  # threshold for acceleration
 brake_threshold = 20  # threshold for brake
 
@@ -97,6 +97,8 @@ def callback_feedback(data):
                          data.pose.pose.orientation.z *
                          data.pose.pose.orientation.z)
     yaw = math.atan2(siny, cosy)
+    # dynamically changing tar_vel
+    # tar_vel = 15 - 0.3 * abs(yaw)
 
     last_recorded_vel = (data.twist.twist.linear.x * math.cos(yaw) +
                          data.twist.twist.linear.y * math.sin(yaw))
@@ -141,19 +143,22 @@ def callback_feedback(data):
     rospy.loginfo("linear velocity : %f", plot.linear.y)
     rospy.loginfo("target linear velocity : %f", plot.linear.x)
     rospy.loginfo("delta : %f", output.angular.z)
+    # global tar_vel
+    tar_vel = 10 - (0.3 * abs(output.angular.z))
     # publish the msg
     prius_pub(output)
     pub1.publish(plot)
 
 
-def callback_cmd_vel(data):
+def callback_cmd_vel(delta):
     '''
     Subscribes from cmd_vel and gives target velocity
-    :params data [Twist]
+    :params delta [Twist]
     :params tar_vel [float]
     '''
-    global tar_vel
-    tar_vel = data.linear.x
+    # global tar_vel
+    # tar_vel = 15 - 0.3 * float(abs(delta))
+    pass
 
     # smoothing the velocity and reducing it at greater turning angles.
 
@@ -167,11 +172,13 @@ def callback_delta(data):
     global tar_delta
     tar_delta = data.angular.z
 
+
 def stop(data):
     d = str(data)
     elements = d.split("+")
     if elements[0] == elements[1]:
         output.linear.x = 0
+
 
 def start():
     global pub
@@ -180,11 +187,12 @@ def start():
     rospy.init_node('controls', anonymous=True)
     pub = rospy.Publisher(ackermann_cmd_topic, Control, queue_size=10)
     pub1 = rospy.Publisher('plot', Twist, queue_size=10)
-    rospy.Subscriber("cmd_vel_frenet", Twist, callback_cmd_vel)
+    # rospy.Subscriber("cmd_vel_frenet", Twist, callback_cmd_vel)
+    # rospy.Subscriber("cmd_vel_frenet", String, callback_cmd_vel)
+
     rospy.Subscriber("cmd_delta", Twist, callback_delta)
     rospy.Subscriber("base_pose_ground_truth", Odometry, callback_feedback)
     rospy.Subscriber("list", String, stop)
-
 
     rospy.spin()
 

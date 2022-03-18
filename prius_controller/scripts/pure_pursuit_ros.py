@@ -15,7 +15,7 @@ from std_msgs.msg import String
 # Publish Topic: cmd_delta
 # Subscribe Topic: base_pose_ground_truth, astroid_path
 
-max_vel = 6.0  # maximum linear velocity
+max_vel = 10.0  # maximum linear velocity
 global steer
 k = 0.5  # constant for relating look ahead distance and velocity
 wheelbase = 1.983  # wheel base for the vehicle
@@ -37,13 +37,14 @@ x_bot = 0
 y_bot = 0
 #  to be tuned
 Kp = 0.1  # proportional gain
-Ki = 0.001  # integral gain
+Ki = 0  # integral gain
 Kpp = 0.9  # as Ki + Kpp + Kp = 1
 w_current = 0.5  # to be tuned
-w_prev = 0.25  # considering l=3
+l = 19
+w_prev = 0.027  # considering l=19
 # to be tuned
 sum_e = 0  # for integral controller
-delta_prev = 0  # for storing the previous steer
+delta_prev = []  # for storing the previous steer
 
 
 def callback_feedback(data):
@@ -125,6 +126,7 @@ def callback_path(data):
     global n
     global cp1
     global path_length
+    global yaw
 
     cross_err = Twist()
     x_p = data
@@ -221,7 +223,7 @@ def callback_path(data):
 
     # print("cmd published")
 
-    print ((ep))
+    print((ep))
     # print(x_p.poses[cp].pose.orientation)
 
 
@@ -231,7 +233,7 @@ def pure_pursuit(goal_point, prev_point):
     :params goal_point [float,float] goal point coordinates
     :params Delta [float] steering angle in radians 
     '''
-    # global x_bot, y_bot, curr_steer, wheelbase, w_prev, sum_e, delta_prev, Ki, Kp, Kpp, 
+    # global x_bot, y_bot, curr_steer, wheelbase, w_prev, sum_e, delta_prev, Ki, Kp, Kpp,
     global curr_steer
     global x_bot
     global y_bot
@@ -268,13 +270,28 @@ def pure_pursuit(goal_point, prev_point):
     delta_i = Ki * sum_e
     print("delta_i: ", delta_i)
     delta_curr = Kpp * Delta_pp + delta_p + delta_i
+    # delta_curr = Delta_pp
     print("delta_curr: ", delta_curr)
-    delta = w_prev * delta_prev + w_current * delta_curr
+    delta = 0
+    # if len(delta_prev) == l-1 :
+    #     for prev in delta_prev:
+    #         delta+=  w_prev * prev + w_current * delta_curr
+    # else:
+    #     delta = Delta_pp
+    
+    # if len(delta_prev) < l-1:
+    #     delta_prev.append(delta)
+    # elif len(delta_prev) >= l-1:
+    #     delta_prev.pop(0)
+    #     delta_prev.append(delta)
+    # delta = w_prev * delta_prev + w_current * delta_curr
+    delta = delta_curr
     print("w_curr: ", w_current)
     print("w_prev: ", w_prev)
-    delta_prev = delta_curr
+    # delta_prev = delta
     print('delta', delta)
-    return delta
+    pub4.publish(Delta_pp)
+    return Delta_pp
 
 
 def get_e(car_cord, goal_point, prev_point):
@@ -297,6 +314,7 @@ def start():
     pub2 = rospy.Publisher('cross_track_error', Twist, queue_size=100)
     pub1 = rospy.Publisher('cmd_delta', Twist, queue_size=100)
     pub3 = rospy.Publisher("list", String, queue_size=100)
+    pub4 = rospy.Publisher("cmd_vel_frenet", String, queue_size=10)
     rospy.Subscriber("base_pose_ground_truth", Odometry, callback_feedback)
     rospy.Subscriber("astroid_path", Path, callback_path)
 
