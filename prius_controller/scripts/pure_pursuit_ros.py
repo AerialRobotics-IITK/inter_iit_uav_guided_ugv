@@ -15,7 +15,7 @@ from std_msgs.msg import String
 # Publish Topic: cmd_delta
 # Subscribe Topic: base_pose_ground_truth, astroid_path
 
-max_vel = 12.0  # maximum linear velocity
+max_vel = 13.0  # maximum linear velocity
 global steer
 k = 0.5  # constant for relating look ahead distance and velocity
 wheelbase = 1.983  # wheel base for the vehicle

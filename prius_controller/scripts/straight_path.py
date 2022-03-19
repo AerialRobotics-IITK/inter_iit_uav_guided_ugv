@@ -80,7 +80,7 @@ def main():
     has_initialize = True
     # loop to get the path coordinates
 
-    f = open("/home/akshit/ros/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/testing/mean_path/world2/world2.csv", 'r')
+    f = open("/home/subhrajit/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/testing/world1.csv", 'r')
     c =[]
     for p in csv.reader(f):
         c.append(p)
