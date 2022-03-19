@@ -3,6 +3,7 @@
 void LocalizationNode::init(ros::NodeHandle& nh) {
     odom_sub_ = nh.subscribe("odom", 1, &LocalizationNode::odomCallback, this);
     odom_pub_ = nh.advertise<nav_msgs::Odometry>("publish_odom", 50);
+    vel_pub_ = nh.advertise<geometry_msgs::Twist>("publish_vel", 50);
 
     // set parameters
     nh.getParam("camera_matrix", camera_matrix_);
@@ -84,4 +85,15 @@ void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWhe
     odom.pose.pose.position.z = centre[2];
     odom.pose.pose.orientation = odom_quat;
     odom_pub_.publish(odom);
+}
+
+void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius, Eigen::Vector3d& previousPositionOfPrius, double previousTime) {
+    double currentTime = ros::Time::now().toSec();
+    geometry_msgs::Vector3 linearVelOfPrius;
+    linearVelOfPrius.x = (currentPositionOfPrius[0] - previousPositionOfPrius[0]) / (currentTime - previousTime);
+    linearVelOfPrius.y = (currentPositionOfPrius[1] - previousPositionOfPrius[1]) / (currentTime - previousTime);
+    linearVelOfPrius.z = (currentPositionOfPrius[2] - previousPositionOfPrius[2]) / (currentTime - previousTime);
+    geometry_msgs::Twist velocityOfPrius;
+    velocityOfPrius.linear = linearVelOfPrius;
+    vel_pub_.publish(velocityOfPrius);
 }
