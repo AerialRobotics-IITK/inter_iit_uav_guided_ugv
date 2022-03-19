@@ -2,6 +2,8 @@
 
 void LocalizationNode::init(ros::NodeHandle& nh) {
     odom_sub_ = nh.subscribe("/mavros/local_position/odom", 1, &LocalizationNode::odomCallback, this);
+    odom_pub_ = nh.advertise<nav_msgs::Odometry>("/prius_odom", 50);
+    vel_pub_ = nh.advertise<geometry_msgs::Twist>("/prius_vel", 50);
 
     // set parameters
     nh.getParam("/camera_matrix", camera_matrix_);
@@ -39,7 +41,8 @@ Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
     return map_frame_coordinates;
 }
 
-float LocalizationNode::getOrientationOfPrius(std::vector<std::pair<float, float>>& corners, std::pair<float, float> centre) {
+// float LocalizationNode::getOrientationOfPrius(std::vector<std::pair<float, float>>& corners, std::pair<float, float> centre) {
+void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWheels, Eigen::Vector3d& centre) {
     float yaw;
     /*
       The vector corners stores all the four corners of the prius. The corners[0] stores the coordinates of the left front
@@ -47,29 +50,49 @@ float LocalizationNode::getOrientationOfPrius(std::vector<std::pair<float, float
       corners[3] stores the coordinates of the front right, back left and back right wheel respectively. However, the
       coordinates of front wheels are needed only for this function to work properly.
     */
-    float left_horizontal = abs(centre.first - corners[0].first);
-    float left_vertical = abs(centre.second - corners[0].second);
-    float alpha = atan(left_vertical / (1.0 * left_horizontal));
+    // float left_horizontal = abs(centre.first - corners[0].first);
+    // float left_vertical = abs(centre.second - corners[0].second);
+    // float alpha = atan(left_vertical / (1.0 * left_horizontal));
 
-    float right_horizontal = abs(centre.first - corners[1].first);
-    float right_vertical = abs(centre.second - corners[1].second);
-    float beta = atan(right_vertical / (1.0 * right_horizontal));
-    if (alpha <= beta) {
-        // The vehicle needs to move rightwards.
-        float front_slope = atan(((1.0) * (corners[0].second - corners[1].second)) / ((1.0) * (corners[0].first - corners[1].first)));
-        front_slope = abs(front_slope);
-        if (front_slope < M_PI / 2.0) {
-            front_slope = M_PI - front_slope;
-        }
-        yaw = M_PI - front_slope;
-        return yaw;
-    }
-    // Else the vehicle needs to move leftwards.
-    float front_slope = atan(((1.0) * (corners[0].second - corners[1].second)) / ((1.0) * (corners[0].first - corners[1].first)));
-    front_slope = abs(front_slope);
-    if (front_slope > M_PI / 2.0) {
-        front_slope = M_PI - front_slope;
-    }
-    yaw = front_slope;
-    return yaw;
+    // float right_horizontal = abs(centre.first - corners[1].first);
+    // float right_vertical = abs(centre.second - corners[1].second);
+    // float beta = atan(right_vertical / (1.0 * right_horizontal));
+    // if (alpha <= beta) {
+    //     // The vehicle needs to move rightwards.
+    //     float front_slope = atan(((1.0) * (corners[0].second - corners[1].second)) / ((1.0) * (corners[0].first - corners[1].first)));
+    //     front_slope = abs(front_slope);
+    //     if (front_slope < M_PI / 2.0) {
+    //         front_slope = M_PI - front_slope;
+    //     }
+    //     yaw = M_PI - front_slope;
+    //     return yaw;
+    // }
+    // // Else the vehicle needs to move leftwards.
+    // float front_slope = atan(((1.0) * (corners[0].second - corners[1].second)) / ((1.0) * (corners[0].first - corners[1].first)));
+    // front_slope = abs(front_slope);
+    // if (front_slope > M_PI / 2.0) {
+    //     front_slope = M_PI - front_slope;
+    // }
+    // yaw = front_slope;
+    // return yaw;
+    yaw = atan((midPointOfFrontWheels[1] - centre[1]) / (midPointOfFrontWheels[0] - centre[0]));
+    std::cout << "yaw of prius" << yaw << std::endl;
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(yaw);
+    nav_msgs::Odometry odom;
+    odom.pose.pose.position.x = centre[0];
+    odom.pose.pose.position.y = centre[1];
+    odom.pose.pose.position.z = centre[2];
+    odom.pose.pose.orientation = odom_quat;
+    odom_pub_.publish(odom);
+}
+
+void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius, Eigen::Vector3d& previousPositionOfPrius, double previousTime) {
+    double currentTime = ros::Time::now().toSec();
+    geometry_msgs::Vector3 linearVelOfPrius;
+    linearVelOfPrius.x = (currentPositionOfPrius[0] - previousPositionOfPrius[0]) / (currentTime - previousTime);
+    linearVelOfPrius.y = (currentPositionOfPrius[1] - previousPositionOfPrius[1]) / (currentTime - previousTime);
+    linearVelOfPrius.z = (currentPositionOfPrius[2] - previousPositionOfPrius[2]) / (currentTime - previousTime);
+    geometry_msgs::Twist velocityOfPrius;
+    velocityOfPrius.linear = linearVelOfPrius;
+    vel_pub_.publish(velocityOfPrius);
 }

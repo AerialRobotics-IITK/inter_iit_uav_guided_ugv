@@ -23,10 +23,13 @@ class LocalizationNode {
     void odomCallback(const nav_msgs::Odometry& msg);
     void arrayToMatrixConversion();
     Eigen::Vector3d inMapFrame(Eigen::Vector3d& point);
-    float getOrientationOfPrius(std::vector<std::pair<float, float>>& corners, std::pair<float, float> centre);
-
+    // float getOrientationOfPrius(std::vector<std::pair<float, float>>& corners, std::pair<float, float> centre);
+    void getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWheels, Eigen::Vector3d& centre);
+    void getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius, Eigen::Vector3d& previousPositionOfPrius, double previousTime);
     ros::Subscriber odom_sub_;
     ros::Publisher global_coord_pub_;
+    ros::Publisher odom_pub_;
+    ros::Publisher vel_pub_;
 
     nav_msgs::Odometry odom_;
 

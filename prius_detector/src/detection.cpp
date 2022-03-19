@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include <pcl/point_types.h>
 #include <pcl_ros/transforms.h>
 #include <pcl/conversions.h>
 #include <pcl/PCLPointCloud2.h>
@@ -39,7 +38,6 @@ cv::Scalar color = cv::Scalar(255, 0, 0);
 Eigen::Vector3d inCameraFrame(float& x, float& y) {
 
     Eigen::Vector3d point;
-
     point(0) = (*cloud_).at(x, y).x;
     point(1) = (*cloud_).at(x, y).y;
     point(2) = (*cloud_).at(x, y).z;
@@ -50,16 +48,17 @@ void imageProcessing() {
     if (!flag) return;
 
     int maxval;
-    int hull_param;
     int thres;
 
     ros::NodeHandle nh;
-    nh.getParam("hull_param", hull_param);
+
     nh.getParam("thres", thres);
     nh.getParam("maxval", maxval);
 
 	cv::Mat mask;
-    cv::inRange(img_,(0,0,0),(120,120,120),mask);
+    int subt = depth.at<float>(320,480);
+    cv::Scalar max_white = cv::Scalar(120-subt*1.5, 120-subt*1.5,120-subt*1.5);
+    cv::inRange(img_,(0,0,0),max_white,mask);
     // cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV);
 
     // Finding contours..
@@ -81,7 +80,7 @@ void imageProcessing() {
             std::cout << "No hull found..\n";
             return;
         }
-        else if(15<hull[i].size()&&hull[i].size()<40){
+        else if(20<hull[i].size()&&hull[i].size()<40){
             car_hull = i;
             cv::drawContours( drawing, hull, i, color, 1, 8 );
         }
@@ -136,11 +135,14 @@ void imageProcessing() {
     std::cout << "camera frame prius: " << prius_center(0) << " " << prius_center(1) << " "<<prius_center(2)<< std::endl;
 
     Eigen::Vector3d prius_center_global = localization.inMapFrame(prius_center);
+    Eigen::Vector3d front_center_global = localization.inMapFrame(front_center);
 
     std::cout << "global frame coordinates" <<prius_center_global(0) << " " << prius_center_global(1) << " " << prius_center_global(2) << std::endl;
 
     cv::circle(mask, center, 2, cv::Scalar(0,255,0), 2);
     cv::circle(mask, fcenter, 2, cv::Scalar(0,0,255), 2);
+
+    localization.getOrientationOfPrius(front_center_global, prius_center_global);
 
     // Display
     cv::imshow("Original", mask);
