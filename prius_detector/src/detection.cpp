@@ -101,7 +101,6 @@ void imageProcessing(cv::Mat &depth) {
     
     drawContours( drawing, contours, -1, color, 1, 8);
     // for (int i = 0; i< contours.size(); i++){
-    //     // std::cout<<"here";
     //     float ctArea= cv::contourArea(contours[i]);
     //     std::cout<<"Area of countour : "<<ctArea<<"\n";
     //     if (ctArea > biggestContourArea){
