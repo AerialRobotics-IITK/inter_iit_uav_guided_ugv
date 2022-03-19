@@ -14,7 +14,7 @@ def callback_feedback(msg):
     #   index +=1
     global time
     time += 1
-    if time % 800 == 0:
+    if time % 80 == 0:
         index = 1
         c.writerow([msg.pose[index].position.x,
                    msg.pose[index].position.y, msg.pose[index].position.z])

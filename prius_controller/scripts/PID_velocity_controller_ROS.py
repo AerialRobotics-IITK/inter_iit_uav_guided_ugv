@@ -13,7 +13,7 @@ from std_msgs.msg import String
 # Subscribed topic - base_pose_ground_truth , cmd_vel, cmd_delta
 
 global pub
-tar_vel = 10
+tar_vel = 13
 global tar_omega
 global tar_delta
 gear_stat = "F"
@@ -98,7 +98,7 @@ def callback_feedback(data):
                          data.pose.pose.orientation.z)
     yaw = math.atan2(siny, cosy)
     # dynamically changing tar_vel
-    # tar_vel = 15 - 0.3 * abs(yaw)
+    # tar_vel = 13 - 0.3 * abs(yaw)
 
     last_recorded_vel = (data.twist.twist.linear.x * math.cos(yaw) +
                          data.twist.twist.linear.y * math.sin(yaw))
@@ -144,7 +144,9 @@ def callback_feedback(data):
     rospy.loginfo("target linear velocity : %f", plot.linear.x)
     rospy.loginfo("delta : %f", output.angular.z)
     # global tar_vel
-    tar_vel = 10 - (0.3 * abs(output.angular.z))
+    tar_vel = 13 - (0.5 * abs(output.angular.z))
+    if plot.linear.y < 2 and tar_vel < 2:
+        tar_vel = 3
     # publish the msg
     prius_pub(output)
     pub1.publish(plot)

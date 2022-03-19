@@ -59,7 +59,8 @@ def main():
 
     x_offset = 0
     y_offset = 0
-    x_offset, y_offset = set_params(x_offset, y_offset)
+    # x_offset, y_offset = set_params(x_offset, y_offset)
+    print("Start")
     rospy.init_node('astroid_curve_publisher')
 
     path_pub = rospy.Publisher('astroid_path', Path, queue_size=100)
