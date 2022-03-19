@@ -12,7 +12,7 @@
 #include <vector>
 
 cv::Mat img_;
-cv::Mat depth(img_.size(), img_.type());
+cv::Mat depth;
 cv::Scalar color = cv::Scalar(255, 0, 0);
 cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& points )
 {
@@ -29,15 +29,15 @@ cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& poin
 void imageProcessing(cv::Mat &depth) {
     ros::NodeHandle nh;
     int maxval;
-    int hull_param;
     int thres;
 
-    nh.getParam("hull_param", hull_param);
     nh.getParam("thres", thres);
     nh.getParam("maxval", maxval);
 
 	cv::Mat mask;
-    cv::inRange(img_,(0,0,0),(120,120,120),mask);
+    int subt = depth.at<float>(320,480);
+    cv::Scalar max_white = cv::Scalar(120-subt*1.5, 120-subt*1.5,120-subt*1.5);
+    cv::inRange(img_,(0,0,0),max_white,mask);
     // cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV);
 
     // Finding contours..
@@ -59,9 +59,9 @@ void imageProcessing(cv::Mat &depth) {
             std::cout << "No hull found..\n";
             return;
         }
-        else if(15<hull[i].size()&&hull[i].size()<40){
+        else if(20<hull[i].size()&&hull[i].size()<40){
             car_hull = i;
-            drawContours( drawing, hull, i, color, 1, 8 );
+            cv::drawContours( drawing, hull, i, color, 1, 8 );
         }
     }
     // drawContours( drawing, hull, 1, color, 1, 8 );
@@ -71,7 +71,7 @@ void imageProcessing(cv::Mat &depth) {
     // cv::imshow("second draw drawing", drawing);
 
     
-    drawContours( drawing, contours, -1, color, 1, 8);
+    cv::drawContours( drawing, contours, -1, color, 1, 8);
     std::cout<<"--------------------------------\n";
 
     // compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
