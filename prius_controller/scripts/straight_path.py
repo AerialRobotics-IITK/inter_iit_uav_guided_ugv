@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import csv
 import math
+import os
 
 
 def frange(x, y, jump):
@@ -79,9 +80,9 @@ def main():
         '~update_rate', 100)  # rate of path publishing
     has_initialize = True
     # loop to get the path coordinates
-
-    f = open("/home/subhrajit/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/testing/world1.csv", 'r')
-    c =[]
+    file_path = os.path.abspath(os.path.dirname(__file__))
+    f = open("/home/akshit/ros/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/testing/mean_path/world1/world1_in.csv", 'r')
+    c = []
     for p in csv.reader(f):
         c.append(p)
     # for t in frange(0, 200, resolution):

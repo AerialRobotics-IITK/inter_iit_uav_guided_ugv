@@ -76,4 +76,41 @@ then launch
 `roslaunch offboard offboard_node.launch`
 
 ##  Running the prius_controller
-Change the path of file world1.csv (/prius_controller/testing/world1.csv) in the file straight_file.py in line 82 corresponding to the location in your PC
+Change the path of file world1.csv `(/prius_controller/testing/world1.csv)` in the file straight_file.py in line 83 corresponding to the location in your PC.
+
+Run the following python scripts in the written sequence
+
+```bash
+python straight_path.py
+python pure_pursuit_ros.py
+python PID_velocity_controller_ROS.py
+```
+
+
+
+## Saving Odometry
+
+To save the odometry of the vehicle run the script present in `prius_controller/testing/odometry`
+
+```bash
+python save_odometry.py
+```
+
+
+
+## Plotting the followed path
+
+Before running install the following dependencies 
+
+```bash
+pip install pandas
+pip install matplotlib
+sudo apt-get install python3-tk 
+```
+
+Then run the following script present in `prius_controller/testing/plot.py`
+
+```bash
+python3 plot.py
+```
+

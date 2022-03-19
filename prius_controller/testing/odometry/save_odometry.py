@@ -3,8 +3,12 @@
 import rospy
 from gazebo_msgs.msg import ModelStates
 import csv
-
-csv_file = open("world1.csv", "w+")
+import os
+file_path = os.path.abspath(os.path.dirname(__file__))
+print("World number like 1 2 3")
+world_name = input("Enter world number: ")
+print(file_path)
+csv_file = open(file_path+"/world" + world_name + "_out.csv", "w+")
 c = csv.writer(csv_file)
 time = 0
 
