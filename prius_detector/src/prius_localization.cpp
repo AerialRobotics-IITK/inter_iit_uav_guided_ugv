@@ -1,12 +1,12 @@
 #include <prius_detector/prius_localization.hpp>
 
 void LocalizationNode::init(ros::NodeHandle& nh) {
-    odom_sub_ = nh.subscribe("odom", 1, &LocalizationNode::odomCallback, this);
+    odom_sub_ = nh.subscribe("/mavros/local_position/odom", 1, &LocalizationNode::odomCallback, this);
 
     // set parameters
-    nh.getParam("camera_matrix", camera_matrix_);
-    nh.getParam("cam_to_quad_rot", camera_to_quad_matrix_);
-    nh.getParam("t_cam", camera_translation_);
+    nh.getParam("/camera_matrix", camera_matrix_);
+    nh.getParam("/cam_to_quad_rot", camera_to_quad_matrix_);
+    nh.getParam("/t_cam", camera_translation_);
 
     arrayToMatrixConversion();
     debug_ = true;
@@ -33,9 +33,7 @@ void LocalizationNode::odomCallback(const nav_msgs::Odometry& msg) {
 }
 
 Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
-    scaleUpMatrix(0, 0) = scaleUpMatrix(1, 1) = scaleUpMatrix(2, 2) = point(2);
-    Eigen::Vector3d pixel_coordinates(point(0), point(1), 1);
-    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * scaleUpMatrix * invCameraMatrix * pixel_coordinates + camera_translation_vector_;
+    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * point + camera_translation_vector_;
     Eigen::Vector3d map_frame_coordinates = quadOrientationMatrix * quad_frame_coordinates + translation_;
 
     return map_frame_coordinates;

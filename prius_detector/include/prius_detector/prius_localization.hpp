@@ -19,8 +19,6 @@ class LocalizationNode {
   public:
     void init(ros::NodeHandle& nh);
     void run();
-
-  private:
     void findGlobalCoordinates();
     void odomCallback(const nav_msgs::Odometry& msg);
     void arrayToMatrixConversion();
