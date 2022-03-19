@@ -11,36 +11,8 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-using namespace cv;
-
 cv::Mat img_;
 cv::Mat depth(img_.size(), img_.type());
-
-// !for debuging
-std::string type2str(int type) {
-  std::string r;
-
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar chans = 1 + (type >> CV_CN_SHIFT);
-
-  switch ( depth ) {
-    case CV_8U:  r = "8U"; break;
-    case CV_8S:  r = "8S"; break;
-    case CV_16U: r = "16U"; break;
-    case CV_16S: r = "16S"; break;
-    case CV_32S: r = "32S"; break;
-    case CV_32F: r = "32F"; break;
-    case CV_64F: r = "64F"; break;
-    default:     r = "User"; break;
-  }
-
-  r += "C";
-  r += (chans+'0');
-
-  return r;
-}
-
 cv::Scalar color = cv::Scalar(255, 0, 0);
 cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& points )
 {
@@ -55,7 +27,6 @@ cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& poin
 }
 
 void imageProcessing(cv::Mat &depth) {
-// void imageProcessing() {
     ros::NodeHandle nh;
     int maxval;
     int hull_param;
@@ -76,13 +47,13 @@ void imageProcessing(cv::Mat &depth) {
 
     int car_hull = 0;
     cv::Mat drawing = cv::Mat::zeros( mask.size(), CV_8UC1 );
-    vector< vector<Point> > hull(contours.size());
+    std::vector< std::vector<cv::Point> > hull(contours.size());
     if(contours.size() == 0){
         std::cout << "No contour found..\n";
         return;
     }
     for(int i = 0; i < contours.size(); i++){
-        convexHull(Mat(contours[i]), hull[i], false);
+        convexHull(cv::Mat(contours[i]), hull[i], false);
         std::cout<<"hull "<<i<<" : "<<hull[i].size();
         if(hull.size()==0){
             std::cout << "No hull found..\n";
@@ -101,23 +72,11 @@ void imageProcessing(cv::Mat &depth) {
 
     
     drawContours( drawing, contours, -1, color, 1, 8);
-    // for (int i = 0; i< contours.size(); i++){
-    //     float ctArea= cv::contourArea(contours[i]);
-    //     std::cout<<"Area of countour : "<<ctArea<<"\n";
-    //     if (ctArea > biggestContourArea){
-    //         biggestContourArea = ctArea;
-    //         biggestContourIdx = i;
-    //     }
-    // }
     std::cout<<"--------------------------------\n";
-
-    // If no contour found
 
     // compute the rotated bounding rect of the biggest contour! (this is the part that does what you want/need)
     
     cv::RotatedRect boundingBox = cv::minAreaRect(contours[car_hull]);
-
-    //one thing to remark: this will compute the OUTER boundary box, so maybe you have to erode/dilate if you want something between the ragged lines
 
     // Draw the rotated rect
     cv::Point2f corners[4];
@@ -150,10 +109,6 @@ void imageProcessing(cv::Mat &depth) {
     std::cout<<"x : "<<center.x<<" y : "<<center.y<<"\n";
     std::cout<<"depth : "<<depth.at<float>(center.x,center.y)<<"\n";
 
-    // if(depth.at<float>(center.x,center.y)>10){
-    //     thres_max = 100;
-    // }
-    
     cv::circle(mask, center, 2, cv::Scalar(0,255,0), 2);
     cv::circle(mask, fcenter, 2, cv::Scalar(0,0,255), 2);
 
