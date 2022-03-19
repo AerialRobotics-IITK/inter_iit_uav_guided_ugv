@@ -66,7 +66,8 @@ void imageProcessing(cv::Mat &depth) {
     nh.getParam("maxval", maxval);
 
 	cv::Mat mask;
-    cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+    cv::inRange(img_,(0,0,0),(150,150,150),mask);
+    // cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV);
 
     // Finding contours..
     std::vector<std::vector<cv::Point>> contours;

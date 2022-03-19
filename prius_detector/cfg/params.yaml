@@ -6,4 +6,4 @@ image_height: 480
 image_width: 640
 hull_param: 4
 thres: 50
-maxval: 255
+maxval: 0
