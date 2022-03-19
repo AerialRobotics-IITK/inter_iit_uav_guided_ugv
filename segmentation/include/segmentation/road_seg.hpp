@@ -59,14 +59,14 @@ class RoadDetector {
     void extractFromInliers(pcl::PointCloud<PointT>::Ptr in, pcl::PointCloud<PointT>::Ptr& out, pcl::PointIndices::Ptr inliers);
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
     void pcCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
-    //Mean Path Helper Function
+    // Mean Path Helper Function
     void drawAxis(cv::Mat&, cv::Point, cv::Point, cv::Scalar, const float);
-    double getOrientation(const std::vector<cv::Point> &, cv::Mat&);
+    double getOrientation(const std::vector<cv::Point>&, cv::Mat&);
     void meanPath();
-    //Mean Path Helper Function
+    // Mean Path Helper Function
     float computeAverageZ(pcl::PointCloud<PointT>::Ptr& cloud, pcl::PointIndices::Ptr inliers, float fraction, int i);
     std::vector<int> randomPick(int N, int k);
-
+    float get_perpendicular_distance(cv::Point p1, cv::Point image_center, cv::Point p2);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_{new pcl::PointCloud<pcl::PointXYZRGB>};
     pcl::PCLPointCloud2 pcl_pc2;
 

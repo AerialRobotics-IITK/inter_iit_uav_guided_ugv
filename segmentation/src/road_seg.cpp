@@ -1,9 +1,12 @@
 #include <segmentation/road_seg.hpp>
 #define FRAC_SAMPLE 0.001          // Fraction of points to be sampled for use in computeAverageZ and computeDeltaZ
 #define MIN_POINTS_ROAD 35000      // Minimum number of points in a road segment. If less, then a penalty will be inposed.
-#define DELTAZ_PARAM 1.25          // Minimum ratio of first and second lowest deltaZ values
+#define DELTAZ_PARAM 1.35          // Minimum ratio of first and second lowest deltaZ values
 #define ROLLING_AVERAGE_PARAM 0.1  // Gamma for moving average
 #define SMALL_SIZE_PENALTY 30.0    // Penalty for small road candidates
+#define PERPENDICULAR_LIMIT 170.0
+#define AREA_THRESHOLD 0.85
+#define NEXT_WAYPOINT_DIS 0.35
 namespace road_detector {
 
 RoadDetector::RoadDetector()
@@ -219,6 +222,7 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW);
     // Store the center of the object
     cv::Point cntr = cv::Point(static_cast<int>(pca_analysis.mean.at<double>(0, 0)), static_cast<int>(pca_analysis.mean.at<double>(0, 1)));
+    // center.x center.y
 
     // Store the eigenvalues and eigenvectors
     std::vector<cv::Point2d> eigen_vecs(2);
@@ -241,13 +245,28 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
         p1.x = cntr.x + 10 * dir.x;
         p1.y = cntr.y + 10 * dir.y;
     }
-    waypoint.x = cntr.x + (0.1 * dir.x);
-    waypoint.y = cntr.y + (0.1 * dir.y);
+    cv::Point image_center;
+    image_center.x = img.cols / 2;
+    image_center.y = img.rows / 2;
+    next_waypoint_.corrective = 0;
+    if (get_perpendicular_distance(p1, image_center, cntr) > PERPENDICULAR_LIMIT) {
+        float t = dir.x;
+        dir.x = dir.y;
+        dir.y = -t;
+
+        if ((image_center.x - cntr.x) * (dir.x) + (image_center.y - cntr.y) * (dir.y) > 0) {
+            dir.x = (-dir.x);
+            dir.y = (-dir.y);
+        }
+        next_waypoint_.corrective = 1;
+    }
+    waypoint.x = cntr.x + (NEXT_WAYPOINT_DIS * dir.x);
+    waypoint.y = cntr.y + (NEXT_WAYPOINT_DIS * dir.y);
     std::cout << "waypoint: " << waypoint.x << " " << waypoint.y << "\n";
     cv::circle(img, waypoint, 3, cv::Scalar(255, 0, 255), 2);
     drawAxis(img, cntr, p1, cv::Scalar(0, 0, 0), 1);
-    //drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
-    double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
+    // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
+    double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);  // orientation in radians
 
     // Construct the waypoint
     next_waypoint_.x = (*cloud_).at(waypoint.x, waypoint.y).x;
@@ -257,9 +276,15 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
 
     // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
     // double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);  // orientation in radians
-    return angle;
+    return angle - 1.57;  // change in yaw required
 }
-
+float RoadDetector::get_perpendicular_distance(const cv::Point p, const cv::Point q, const cv::Point r) {
+    float area = fabs((p.x - r.x) * (q.y - r.y) - (q.x - r.x) * (p.y - r.y));
+    float dist = area / cv::norm(p - r);
+    std::cout << "dist: " << dist << "\n";
+    return dist;
+    // q is the image center
+}
 void RoadDetector::meanPath() {
     cv::Mat gray;
     cv::cvtColor(img_[min_alignment_idx], gray, CV_BGR2GRAY);
@@ -293,7 +318,27 @@ void RoadDetector::meanPath() {
         }
     }
 
-    getOrientation(Image_Pts, img_[min_alignment_idx]);
+    if(((float)Image_Pts.size()/(img_[min_alignment_idx].cols*img_[min_alignment_idx].rows))>AREA_THRESHOLD){
+        std::cout<<"here\n";
+        cv::Point img_center;
+        img_center.x=img_[min_alignment_idx].cols/2;
+        img_center.y=img_[min_alignment_idx].rows/2;
+        cv::Point straight;
+        straight.x=img_center.x;
+        straight.y= img_center.y - 50;
+        waypoint.x=0;
+        waypoint.y=-1;
+        cv::circle(img_[min_alignment_idx], waypoint, 3, cv::Scalar(255, 0, 255), 2);
+        drawAxis(img_[min_alignment_idx],img_center,straight,cv::Scalar(0, 0, 0), 1);
+        next_waypoint_.x = (*cloud_).at(straight.x, straight.y).x;
+        next_waypoint_.y = (*cloud_).at(straight.x, straight.y).y;
+        next_waypoint_.z = (*cloud_).at(straight.x, straight.y).z;
+        next_waypoint_.theta = 1.57 - 1.57;
+        next_waypoint_.corrective = 0;
+    }
+    else{
+        getOrientation(Image_Pts,img_[min_alignment_idx]);
+    }
 
     try {
         cv::imshow("Final", img_[min_alignment_idx]);

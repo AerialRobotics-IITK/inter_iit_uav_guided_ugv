@@ -10,6 +10,11 @@
 #include <tf/tf.h>
 #include <nav_msgs/Odometry.h>
 
+#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Quaternion.h>
+#include <tf/transform_datatypes.h>
+// #include <LinearMath/btMatrix3x3.h>
+
 namespace mapping_fsm {
 class MappingFSM {
     ros::NodeHandle nh_;
