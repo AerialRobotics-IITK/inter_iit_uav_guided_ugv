@@ -41,7 +41,7 @@ std::string type2str(int type) {
   return r;
 }
 
-cv::Scalar color = cv::Scalar(255, 255, 255);
+cv::Scalar color = cv::Scalar(255, 0, 0);
 cv::Mat GetPixelsFromMat( const cv::Mat& I, const std::vector<cv::Point2f>& points )
 {
     // some pre-condition:
@@ -66,7 +66,7 @@ void imageProcessing(cv::Mat &depth) {
     nh.getParam("maxval", maxval);
 
 	cv::Mat mask;
-    cv::inRange(img_,(0,0,0),(150,150,150),mask);
+    cv::inRange(img_,(0,0,0),(120,120,120),mask);
     // cv::threshold(img_, mask, thres, maxval,CV_THRESH_BINARY_INV);
 
     // Finding contours..
@@ -131,12 +131,22 @@ void imageProcessing(cv::Mat &depth) {
     
     // Draw center point..
     cv::Point2f center;
+    cv::Point2f fcenter;
+
     for (int i=0; i<4; i++){
         center.x += corners[i].x;
         center.y += corners[i].y;
     } 
+    for (int i=0; i<2; i++){
+        fcenter.x += corners[i].x;
+        fcenter.y += corners[i].y;
+    } 
+
     center.x /= 4;
     center.y /= 4;
+
+    center.x /= 2;
+    center.y /= 2;
     std::cout<<"x : "<<center.x<<" y : "<<center.y<<"\n";
     std::cout<<"depth : "<<depth.at<float>(center.x,center.y)<<"\n";
 
@@ -144,7 +154,8 @@ void imageProcessing(cv::Mat &depth) {
     //     thres_max = 100;
     // }
     
-    cv::circle(mask, center, 2, cv::Scalar(255,255,255), 2);
+    cv::circle(mask, center, 2, cv::Scalar(0,255,0), 2);
+    cv::circle(mask, fcenter, 2, cv::Scalar(0,0,255), 2);
 
     // Display
     cv::imshow("Original", mask);
