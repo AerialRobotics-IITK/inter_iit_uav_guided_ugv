@@ -263,7 +263,7 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     waypoint.x = cntr.x + (NEXT_WAYPOINT_DIS * dir.x);
     waypoint.y = cntr.y + (NEXT_WAYPOINT_DIS * dir.y);
     std::cout << "waypoint: " << waypoint.x << " " << waypoint.y << "\n";
-    cv::circle(img, waypoint, 3, cv::Scalar(255, 0, 255), 2);
+    cv::circle(img, waypoint, 3, cv::Scalar(255, 255, 255), 2);
     drawAxis(img, cntr, p1, cv::Scalar(0, 0, 0), 1);
     // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
     double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);  // orientation in radians
@@ -325,7 +325,7 @@ void RoadDetector::meanPath() {
         img_center.y=img_[min_alignment_idx].rows/2;
         cv::Point straight;
         straight.x=img_center.x;
-        straight.y= img_center.y - 50;
+        straight.y= img_center.y - 100;
         waypoint.x=0;
         waypoint.y=-1;
         cv::circle(img_[min_alignment_idx], waypoint, 3, cv::Scalar(255, 0, 255), 2);

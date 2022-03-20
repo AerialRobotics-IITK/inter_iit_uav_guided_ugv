@@ -1,7 +1,7 @@
 #include <segmentation/mapping_fsm.hpp>
 #define OUT_TOPIC "/mavros/setpoint_position/local"
 #define CLOSENESS_PARAM 1.0
-#define PAUSE_WAIT_TIME 2
+#define PAUSE_WAIT_TIME 10
 namespace mapping_fsm {
 
 MappingFSM::MappingFSM() {
@@ -51,6 +51,10 @@ void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector
     // possible_obj contains the waypoint coordinates in the global frame
     
     Eigen::Vector3d camera_frame_coordinates(msg.x, msg.y, msg.z);
+    Eigen::Matrix3d test;
+    test << 0, 1, 0, 
+            -1, 0, 0, 
+            0, 0, 1;
     Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * camera_frame_coordinates + camera_translation_vector_;
     possible_obj = quadOrientationMatrix * quad_frame_coordinates + translation_;
 }
@@ -71,17 +75,24 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     current_obj_ = road_mean_path_[road_mean_path_.size() - 1];
     current_obj_(2) += 15.0; // need to be 15m above the road
 
-    std::cout << "Current position         :       " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) <<std::endl;
-    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
-
     tf::Quaternion quat(quaternion_drone_.x(), quaternion_drone_.y(), quaternion_drone_.z(), quaternion_drone_.w());
-    // quat.x = quaternion_drone_.x;
-    // quat.y = quaternion_drone_.y;
-    // quat.z = quaternion_drone_.z;
-    // quat.w = quaternion_drone_.w;
     double roll, pitch, yaw;
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-    yaw = yaw + 0.4*msg.theta;
+
+    double delta = std::min(std::abs(0.5*msg.theta), 0.52);
+    yaw = msg.theta > 0 ? yaw + delta : yaw - delta;
+    // yaw += msg.theta;
+
+    quat.setRPY(roll, pitch, yaw);
+    pose.pose.orientation.x = double(quat.x());
+    pose.pose.orientation.y = double(quat.y());
+    pose.pose.orientation.z = double(quat.z());
+    pose.pose.orientation.w = double(quat.w());
+
+    std::cout << "Delta theta from segmentation : " << delta * 180.0/3.14 << std::endl;
+    std::cout << "Point from pointcloud      :   " << msg.x << ", " << msg.y << ", " << msg.z << std::endl;
+    std::cout << "Current position           :   " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) <<std::endl;
+    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
 
     close_to_obj_ = (coord_drone_ - current_obj_).norm() < CLOSENESS_PARAM;
     if (close_to_obj_) {
@@ -100,15 +111,10 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     }
     // Before publishing set current objective to the waypoint.
 
-    quat.setRPY(roll, pitch, yaw);
     // Publish the earlier objective otherwise
     pose.pose.position.x = current_obj_(0);
     pose.pose.position.y = current_obj_(1);
     pose.pose.position.z = current_obj_(2);
-    pose.pose.orientation.x = double(quat.x());
-    pose.pose.orientation.y = double(quat.y());
-    pose.pose.orientation.z = double(quat.z());
-    pose.pose.orientation.w = double(quat.w());
     way_pub_.publish(pose);
     std::cout << "---------------------------------------------" << std::endl;
     return;
