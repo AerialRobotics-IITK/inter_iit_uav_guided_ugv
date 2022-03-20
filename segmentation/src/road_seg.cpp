@@ -14,6 +14,7 @@ RoadDetector::RoadDetector()
     // Subscribe to input video feed and publish output video feed
     image_sub_ = it_.subscribe("/depth_camera/rgb/image_raw", 1, &RoadDetector::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
+    road_img = it_.advertise("/image/road_seg", 1);
     cloud_sub_ = nh_.subscribe("/depth_camera/depth/points", 1, &RoadDetector::pcCallback, this);
     cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/processed/pointcloud", 1);
     waypoint_pub_ = nh_.advertise<segmentation::drone_way>("/drone_way", 1);
@@ -90,8 +91,10 @@ float RoadDetector::computeDeltaZ(pcl::PointCloud<PointT>::Ptr& cloud, pcl::Poin
 
 void RoadDetector::imageCb(const sensor_msgs::ImageConstPtr& msg) {
     cv_bridge::CvImagePtr cv_ptr;
+    input_msg = msg;
     try {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+        //road_img_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     } catch (cv_bridge::Exception& e) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
@@ -102,9 +105,10 @@ void RoadDetector::imageCb(const sensor_msgs::ImageConstPtr& msg) {
     img_[2] = cv_ptr->image.clone();
 
     // std::cout<<(cv_ptr->image).rows<<" "<<(cv_ptr->image).cols<<std::endl;
-
+    
     std::cout << "[ImageCb] Publishing image after drawing circle" << std::endl;
     image_pub_.publish(cv_ptr->toImageMsg());
+   // road_img.publish(road_img_ptr->toImageMsg());
 }
 
 float RoadDetector::computeAlignment(pcl::PointCloud<PointT>::Ptr& cloud, pcl::PointIndices::Ptr inliers) {
@@ -410,7 +414,6 @@ void RoadDetector::pcCallback(const sensor_msgs::PointCloud2::ConstPtr& input) {
     }
     sort(final_alignment.begin(), final_alignment.end());
     min_alignment_idx = final_alignment[0].second;
-
     // We use a moving mean to update the prevZ value. This is to prevent the prevZ value from being
     // thrown off by a single bad detection. It cheaply averages the last few detections to get a more
     // stable and reliable averageZ values.
@@ -419,6 +422,9 @@ void RoadDetector::pcCallback(const sensor_msgs::PointCloud2::ConstPtr& input) {
     pcl::toROSMsg(*label_image, cloud_publish);
     cloud_publish.header = input->header;
     cloud_pub_.publish(cloud_publish);
+    road_img_ptr = cv_bridge::toCvCopy(input_msg, sensor_msgs::image_encodings::BGR8);
+    road_img_ptr->image = img_[min_alignment_idx].clone();
+    road_img.publish(road_img_ptr->toImageMsg());
     try {
         cv::imshow(OPENCV_WINDOW, img_[0]);
         cv::imshow("Second", img_[1]);

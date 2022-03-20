@@ -42,6 +42,7 @@ class RoadDetector {
     ros::Publisher cloud_pub_;
     ros::Subscriber cloud_sub_;
     ros::Publisher waypoint_pub_;
+    image_transport::Publisher road_img; 
 
   public:
     const std::string OPENCV_WINDOW = "Image window";
@@ -83,6 +84,8 @@ class RoadDetector {
 
     std::random_device rd;
     std::unordered_set<int> elems;
+    cv_bridge::CvImagePtr road_img_ptr;
+    sensor_msgs::ImageConstPtr input_msg;
 };
 
 }  // namespace road_detector
