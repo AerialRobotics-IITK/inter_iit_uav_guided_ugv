@@ -21,7 +21,7 @@ class MappingFSM {
     ros::Subscriber way_sub_;
     ros::Publisher way_pub_;
     ros::Subscriber odom_sub_;
-
+    ros::Publisher image_pub_;
   public:
     MappingFSM();
     void wayCallback(const segmentation::drone_way& msg);

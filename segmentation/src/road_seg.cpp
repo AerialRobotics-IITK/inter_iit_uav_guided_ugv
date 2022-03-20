@@ -16,6 +16,7 @@ RoadDetector::RoadDetector()
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     cloud_sub_ = nh_.subscribe("/depth_camera/depth/points", 1, &RoadDetector::pcCallback, this);
     cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/processed/pointcloud", 1);
+    // image_pub_ = nh.advertise<sensor_msgs::Image>("image/segmented_road",1);
     waypoint_pub_ = nh_.advertise<segmentation::drone_way>("/drone_way", 1);
     cv::namedWindow(OPENCV_WINDOW);
 
@@ -266,7 +267,7 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     cv::circle(img, waypoint, 3, cv::Scalar(255, 255, 255), 2);
     drawAxis(img, cntr, p1, cv::Scalar(0, 0, 0), 1);
     // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
-    double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);  // orientation in radians
+    double angle = atan2(-dir.x, -dir.y);  // orientation in radians
 
     // Construct the waypoint
     next_waypoint_.x = (*cloud_).at(waypoint.x, waypoint.y).x;
@@ -276,7 +277,7 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
 
     // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
     // double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);  // orientation in radians
-    return angle - 1.57;  // change in yaw required
+    return angle;  // change in yaw required
 }
 float RoadDetector::get_perpendicular_distance(const cv::Point p, const cv::Point q, const cv::Point r) {
     float area = fabs((p.x - r.x) * (q.y - r.y) - (q.x - r.x) * (p.y - r.y));
@@ -333,7 +334,7 @@ void RoadDetector::meanPath() {
         next_waypoint_.x = (*cloud_).at(straight.x, straight.y).x;
         next_waypoint_.y = (*cloud_).at(straight.x, straight.y).y;
         next_waypoint_.z = (*cloud_).at(straight.x, straight.y).z;
-        next_waypoint_.theta = 1.57 - 1.57;
+        next_waypoint_.theta = 0;
         next_waypoint_.corrective = 0;
     }
     else{
@@ -419,6 +420,7 @@ void RoadDetector::pcCallback(const sensor_msgs::PointCloud2::ConstPtr& input) {
     pcl::toROSMsg(*label_image, cloud_publish);
     cloud_publish.header = input->header;
     cloud_pub_.publish(cloud_publish);
+
     try {
         cv::imshow(OPENCV_WINDOW, img_[0]);
         cv::imshow("Second", img_[1]);

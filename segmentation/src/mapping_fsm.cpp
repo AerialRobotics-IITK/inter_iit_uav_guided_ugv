@@ -55,7 +55,10 @@ void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector
     test << 0, 1, 0, 
             -1, 0, 0, 
             0, 0, 1;
-    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * camera_frame_coordinates + camera_translation_vector_;
+    // cameraToQuadMatrix << 0, -1, 0,
+    //                       -1, 0, 0,
+    //                       0, 0, -1;
+    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * camera_frame_coordinates ;
     possible_obj = quadOrientationMatrix * quad_frame_coordinates + translation_;
 }
 
@@ -89,10 +92,10 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     pose.pose.orientation.z = double(quat.z());
     pose.pose.orientation.w = double(quat.w());
 
-    std::cout << "Delta theta from segmentation : " << delta * 180.0/3.14 << std::endl;
+    std::cout << "Direction to move along    : " << msg.theta * 180.0/3.14 << std::endl;
     std::cout << "Point from pointcloud      :   " << msg.x << ", " << msg.y << ", " << msg.z << std::endl;
-    std::cout << "Current position           :   " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) <<std::endl;
-    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
+    std::cout << "Current position           :   " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) << ", " << (yaw - delta) * 180.0 / 3.14 <<std::endl;
+    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) << ", " << yaw * 180.0 / 3.14 <<std::endl;
 
     close_to_obj_ = (coord_drone_ - current_obj_).norm() < CLOSENESS_PARAM;
     if (close_to_obj_) {
@@ -105,6 +108,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         close_to_obj_ = false;
         std::cout << "Reached waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
         std::cout << "[FSM] Next Waypoint received." << std::endl;
+        std::cout << atan2(possible_obj_(1) - current_obj_(1), possible_obj_(0) - current_obj_(0)) << std::endl;
         road_mean_path_.push_back(possible_obj_);
         way_pub_.publish(pose);
         return;
