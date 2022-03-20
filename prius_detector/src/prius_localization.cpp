@@ -1,16 +1,19 @@
 #include <prius_detector/prius_localization.hpp>
 
 void LocalizationNode::init(ros::NodeHandle& nh) {
-    odom_sub_ = nh.subscribe("odom", 1, &LocalizationNode::odomCallback, this);
-    odom_pub_ = nh.advertise<nav_msgs::Odometry>("publish_odom", 50);
+    odom_sub_ = nh.subscribe("/mavros/local_position/odom", 1, &LocalizationNode::odomCallback, this);
+    odom_pub_ = nh.advertise<nav_msgs::Odometry>("/prius_odom", 50);
+    vel_pub_ = nh.advertise<geometry_msgs::Twist>("/prius_vel", 50);
 
     // set parameters
-    nh.getParam("camera_matrix", camera_matrix_);
-    nh.getParam("cam_to_quad_rot", camera_to_quad_matrix_);
-    nh.getParam("t_cam", camera_translation_);
+    nh.getParam("/camera_matrix", camera_matrix_);
+    nh.getParam("/cam_to_quad_rot", camera_to_quad_matrix_);
+    nh.getParam("/t_cam", camera_translation_);
 
     arrayToMatrixConversion();
     debug_ = true;
+    previous_position_ = Eigen::Vector3d(0, 0, 1);
+    previous_time_ = 0;
 }
 
 void LocalizationNode::arrayToMatrixConversion() {
@@ -34,9 +37,7 @@ void LocalizationNode::odomCallback(const nav_msgs::Odometry& msg) {
 }
 
 Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
-    scaleUpMatrix(0, 0) = scaleUpMatrix(1, 1) = scaleUpMatrix(2, 2) = point(2);
-    Eigen::Vector3d pixel_coordinates(point(0), point(1), 1);
-    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * scaleUpMatrix * invCameraMatrix * pixel_coordinates + camera_translation_vector_;
+    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * point + camera_translation_vector_;
     Eigen::Vector3d map_frame_coordinates = quadOrientationMatrix * quad_frame_coordinates + translation_;
 
     return map_frame_coordinates;
@@ -76,12 +77,33 @@ void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWhe
     // }
     // yaw = front_slope;
     // return yaw;
-    yaw = atan((midPointOfFrontWheels[1] - centre[1]) / (midPointOfFrontWheels[0] - centre[0]));
+    yaw = std::atan2((midPointOfFrontWheels(1) - centre(1)), (midPointOfFrontWheels(0) - centre(0)));
+
+    std::cout << "yaw of prius" << yaw << std::endl;
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(yaw);
-    nav_msgs::Odometry odom;
-    odom.pose.pose.position.x = centre[0];
-    odom.pose.pose.position.y = centre[1];
-    odom.pose.pose.position.z = centre[2];
-    odom.pose.pose.orientation = odom_quat;
-    odom_pub_.publish(odom);
+    odom_.pose.pose.position.x = centre(0);
+    odom_.pose.pose.position.y = centre(1);
+    odom_.pose.pose.position.z = centre(2);
+    odom_.pose.pose.orientation = odom_quat;
+    // odom_pub_.publish(odom_);
+}
+
+void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius) {
+    current_time_ = ros::Time::now().toSec();
+
+    current_position_ = currentPositionOfPrius;
+    geometry_msgs::Vector3 linearVelOfPrius;
+
+    linearVelOfPrius.x = (current_position_(0) - previous_position_(0)) / (current_time_ - previous_time_);
+    linearVelOfPrius.y = (current_position_(1) - previous_position_(1)) / (current_time_ - previous_time_);
+    linearVelOfPrius.z = (current_position_(2) - previous_position_(2)) / (current_time_ - previous_time_);
+
+    geometry_msgs::Twist velocityOfPrius;
+    velocityOfPrius.linear = linearVelOfPrius;
+    odom_.twist.twist.linear = linearVelOfPrius;
+    vel_pub_.publish(velocityOfPrius);
+    odom_pub_.publish(odom_);
+
+    previous_position_ = current_position_;
+    previous_time_ = current_time_;
 }

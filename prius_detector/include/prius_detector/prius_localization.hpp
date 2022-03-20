@@ -19,17 +19,17 @@ class LocalizationNode {
   public:
     void init(ros::NodeHandle& nh);
     void run();
-
-  private:
     void findGlobalCoordinates();
     void odomCallback(const nav_msgs::Odometry& msg);
     void arrayToMatrixConversion();
     Eigen::Vector3d inMapFrame(Eigen::Vector3d& point);
     // float getOrientationOfPrius(std::vector<std::pair<float, float>>& corners, std::pair<float, float> centre);
     void getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWheels, Eigen::Vector3d& centre);
+    void getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius);
     ros::Subscriber odom_sub_;
     ros::Publisher global_coord_pub_;
     ros::Publisher odom_pub_;
+    ros::Publisher vel_pub_;
 
     nav_msgs::Odometry odom_;
 
@@ -39,6 +39,9 @@ class LocalizationNode {
     Eigen::Matrix3d cameraToQuadMatrix;
     Eigen::Matrix3d quadOrientationMatrix, scaleUpMatrix;
     Eigen::Vector3d translation_, camera_translation_vector_;
+
+    Eigen::Vector3d previous_position_, current_position_;
+    double previous_time_ , current_time_;
 
     bool debug_;
     std::vector<float> camera_to_quad_matrix_, camera_translation_, camera_matrix_;

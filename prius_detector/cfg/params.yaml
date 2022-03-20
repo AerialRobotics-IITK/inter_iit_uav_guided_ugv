@@ -1,4 +1,4 @@
-t_cam: [0, 0, 0.02]
+t_cam: [0, 0, -0.02]
 cam_to_quad_rot: [0,-1,0,-1,0,0,0,0,-1]
 camera_matrix: [554.254691191187, 0.0, 320.5, 0.0, 554.254691191187, 240.5, 0.0, 0.0, 1.0]
 verbose: true              # Make it true for debugging purposes.
