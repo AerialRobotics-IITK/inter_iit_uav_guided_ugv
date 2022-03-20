@@ -12,6 +12,8 @@ void LocalizationNode::init(ros::NodeHandle& nh) {
 
     arrayToMatrixConversion();
     debug_ = true;
+    previous_position_ = Eigen::Vector3d(0,0,1);
+    previous_time_ = 0;
 }
 
 void LocalizationNode::arrayToMatrixConversion() {
@@ -75,24 +77,32 @@ void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWhe
     // }
     // yaw = front_slope;
     // return yaw;
-    yaw = atan((midPointOfFrontWheels[1] - centre[1]) / (midPointOfFrontWheels[0] - centre[0]));
+    yaw = std::atan2((midPointOfFrontWheels(1) - centre(1)) , (midPointOfFrontWheels(0) - centre(0)));
+    
     std::cout << "yaw of prius" << yaw << std::endl;
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(yaw);
     nav_msgs::Odometry odom;
-    odom.pose.pose.position.x = centre[0];
-    odom.pose.pose.position.y = centre[1];
-    odom.pose.pose.position.z = centre[2];
+    odom.pose.pose.position.x = centre(0);
+    odom.pose.pose.position.y = centre(1);
+    odom.pose.pose.position.z = centre(2);
     odom.pose.pose.orientation = odom_quat;
     odom_pub_.publish(odom);
 }
 
-void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius, Eigen::Vector3d& previousPositionOfPrius, double previousTime) {
-    double currentTime = ros::Time::now().toSec();
+void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius) {
+    current_time_ = ros::Time::now().toSec();
+
+    current_position_ = currentPositionOfPrius;
     geometry_msgs::Vector3 linearVelOfPrius;
-    linearVelOfPrius.x = (currentPositionOfPrius[0] - previousPositionOfPrius[0]) / (currentTime - previousTime);
-    linearVelOfPrius.y = (currentPositionOfPrius[1] - previousPositionOfPrius[1]) / (currentTime - previousTime);
-    linearVelOfPrius.z = (currentPositionOfPrius[2] - previousPositionOfPrius[2]) / (currentTime - previousTime);
+
+    linearVelOfPrius.x = (current_position_(0) - previous_position_(0)) / (current_time_ - previous_time_);
+    linearVelOfPrius.y = (current_position_(1) - previous_position_(1)) / (current_time_ - previous_time_);
+    linearVelOfPrius.z = (current_position_(2) - previous_position_(2)) / (current_time_ - previous_time_);
+    
     geometry_msgs::Twist velocityOfPrius;
     velocityOfPrius.linear = linearVelOfPrius;
     vel_pub_.publish(velocityOfPrius);
+
+    previous_position_ = current_position_;
+    previous_time_ = current_time_;
 }
