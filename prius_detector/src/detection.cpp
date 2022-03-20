@@ -143,6 +143,7 @@ void imageProcessing() {
     cv::circle(mask, fcenter, 2, cv::Scalar(0,0,255), 2);
 
     localization.getOrientationOfPrius(front_center_global, prius_center_global);
+    localization.getVelocityOfPrius(prius_center_global);
 
     // Display
     cv::imshow("Original", mask);
