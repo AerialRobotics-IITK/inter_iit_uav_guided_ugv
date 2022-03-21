@@ -16,7 +16,7 @@
       </light>
       <include>
         <scale>0.000001 0.000001 0.000001</scale>
-        <uri>model://world1</uri>
+        <uri>model://world1_mesh</uri>
       </include>
       <gravity>0 0 -9.8</gravity>
       <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
