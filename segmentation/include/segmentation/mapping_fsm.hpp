@@ -30,9 +30,11 @@ class MappingFSM {
     void arrayToMatrixConversion();
     int pause_count_;
     bool close_to_obj_;
+    float yaw_c_;
     Eigen::Vector3d coord_drone_;
     Eigen::Vector3d current_obj_;
     Eigen::Vector3d possible_obj_;
+    Eigen::Vector3d quad_drame_coord_;
     Eigen::Quaterniond quaternion_drone_;
     std::vector<Eigen::Vector3d> road_mean_path_;
 

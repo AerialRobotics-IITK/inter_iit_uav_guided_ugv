@@ -14,6 +14,7 @@ MappingFSM::MappingFSM() {
     translation_.setZero();
     pause_count_ = 0;
     close_to_obj_ = false;
+    yaw_c_ = -999.0;  // initialize with absurd value
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
 
@@ -59,6 +60,7 @@ void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector
     //                       -1, 0, 0,
     //                       0, 0, -1;
     Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * camera_frame_coordinates ;
+    quad_drame_coord_ = quad_frame_coordinates;
     possible_obj = quadOrientationMatrix * quad_frame_coordinates + translation_;
 }
 
@@ -82,20 +84,27 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     double roll, pitch, yaw;
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
 
-    double delta = std::min(std::abs(0.5*msg.theta), 0.52);
-    yaw = msg.theta > 0 ? yaw + delta : yaw - delta;
-    // yaw += msg.theta;
+    // Keep updating yaw_c_ until we reach 15 m above ground
+    if(road_mean_path_.size() == 1) {
+        yaw_c_ = yaw;
+    }
 
-    quat.setRPY(roll, pitch, yaw);
+    double delta = std::min(std::abs(0.5*msg.theta), 0.52);
+    // yaw = msg.theta > 0 ? yaw + delta : yaw - delta;
+    yaw += msg.theta;
+
+    quat.setRPY(roll, pitch, yaw_c_);
     pose.pose.orientation.x = double(quat.x());
     pose.pose.orientation.y = double(quat.y());
     pose.pose.orientation.z = double(quat.z());
     pose.pose.orientation.w = double(quat.w());
 
+    std::cout << "Current commanded yaw      : " << yaw_c_ * 180.0/3.14 << std::endl;
     std::cout << "Direction to move along    : " << msg.theta * 180.0/3.14 << std::endl;
     std::cout << "Point from pointcloud      :   " << msg.x << ", " << msg.y << ", " << msg.z << std::endl;
-    std::cout << "Current position           :   " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) << ", " << (yaw - delta) * 180.0 / 3.14 <<std::endl;
-    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) << ", " << yaw * 180.0 / 3.14 <<std::endl;
+    std::cout << "Point in quad frame        : "  << quad_drame_coord_(0) << ", " << quad_drame_coord_(1) << ", " << quad_drame_coord_(2) << std::endl;
+    std::cout << "Current position           :   " << coord_drone_(0) << ", " << coord_drone_(1) << ", " << coord_drone_(2) << ", " << (yaw - msg.theta) * 180.0 / 3.14 <<std::endl;
+    std::cout << "Trying to reach waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) << ", " << yaw_c_ * 180.0 / 3.14 <<std::endl;
 
     close_to_obj_ = (coord_drone_ - current_obj_).norm() < CLOSENESS_PARAM;
     if (close_to_obj_) {
@@ -109,17 +118,29 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         std::cout << "Reached waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
         std::cout << "[FSM] Next Waypoint received." << std::endl;
         std::cout << atan2(possible_obj_(1) - current_obj_(1), possible_obj_(0) - current_obj_(0)) << std::endl;
+        // float xc = -(possible_obj_(1) - coord_drone_(1)) + coord_drone_(0);
+        // float yc = -(possible_obj_(0) - coord_drone_(0)) + coord_drone_(1);
+        // possible_obj_(0) = xc;
+        // possible_obj_(1) = yc;
         road_mean_path_.push_back(possible_obj_);
-        way_pub_.publish(pose);
+
+        yaw_c_ = yaw;
+        quat.setRPY(roll, pitch, yaw_c_);
+        pose.pose.orientation.x = double(quat.x());
+        pose.pose.orientation.y = double(quat.y());
+        pose.pose.orientation.z = double(quat.z());
+        pose.pose.orientation.w = double(quat.w());
+        // way_pub_.publish(pose);
         return;
     }
     // Before publishing set current objective to the waypoint.
 
+    std::cout << "Quaternion x,y,z,w : " << quat.x() << ", " << quat.y() << ", " << quat.z() << ", " << quat.w() << std::endl;
     // Publish the earlier objective otherwise
     pose.pose.position.x = current_obj_(0);
     pose.pose.position.y = current_obj_(1);
     pose.pose.position.z = current_obj_(2);
-    way_pub_.publish(pose);
+    // way_pub_.publish(pose);
     std::cout << "---------------------------------------------" << std::endl;
     return;
 }
