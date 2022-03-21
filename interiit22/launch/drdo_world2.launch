@@ -3,7 +3,7 @@
       <arg name="gui" default="true"/>
       <arg name="car_model" default="$(find prius_description)/urdf/prius.urdf"/>
       <param name="robot_description" textfile="$(arg car_model)"/>
-	    <arg name="ardupilot_gazebo_path" default="~/ardupilot_gazebo"/>
+	    <arg name="ardupilot_gazebo_path" default="home/varun/ros/drdo_ws/src/ardupilot_gazebo"/>
 	    <arg name="verbose" default="true"/>
       
 	    <env name="GAZEBO_MODEL_PATH"       value="${GAZEBO_MODEL_PATH}:$(find interiit22)/models:$(arg ardupilot_gazebo_path)/models"/>
