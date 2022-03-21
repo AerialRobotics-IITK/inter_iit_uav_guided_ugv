@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  mavros_msgs
   cv_bridge
   image_transport
   message_generation

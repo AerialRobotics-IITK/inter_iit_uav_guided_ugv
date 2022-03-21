@@ -3,6 +3,7 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <mavros_msgs/HomePosition.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 #include <segmentation/drone_way.h>
@@ -22,10 +23,12 @@ class MappingFSM {
     ros::Publisher way_pub_;
     ros::Subscriber odom_sub_;
     ros::Publisher image_pub_;
+    ros::Subscriber quat_to_sub;
   public:
     MappingFSM();
     void wayCallback(const segmentation::drone_way& msg);
     void odomCallback(const nav_msgs::Odometry& msg);
+    void homeCallback(const mavros_msgs::HomePosition& msg);
     void convertFrames(const segmentation::drone_way& msg, Eigen::Vector3d& possible_obj);
     void arrayToMatrixConversion();
     int pause_count_;
@@ -36,6 +39,7 @@ class MappingFSM {
     Eigen::Vector3d possible_obj_;
     Eigen::Vector3d quad_drame_coord_;
     Eigen::Quaterniond quaternion_drone_;
+    Eigen::Quaterniond home_quat;
     std::vector<Eigen::Vector3d> road_mean_path_;
 
     Eigen::Matrix3d cameraMatrix, invCameraMatrix;

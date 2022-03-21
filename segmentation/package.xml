@@ -75,6 +75,7 @@
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>nav_msgs</depend>
+  <depend>mavros_msgs</depend>
   <depend>eigen_conversions</depend>
 
   <!-- The export tag contains other, unspecified, tags -->

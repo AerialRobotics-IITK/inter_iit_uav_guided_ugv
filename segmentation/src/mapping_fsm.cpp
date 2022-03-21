@@ -30,6 +30,7 @@ MappingFSM::MappingFSM() {
     way_sub_ = nh_.subscribe("/drone_way", 1, &MappingFSM::wayCallback, this);
     way_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(OUT_TOPIC, 1);
     odom_sub_ = nh_.subscribe("/mavros/local_position/odom", 1, &MappingFSM::odomCallback, this);
+    quat_to_sub = nh_.subscribe("/mavros/home_position/home",1, &MappingFSM::homeCallback,this);
 
     std::cout << "CONSTRUCTOR : Done" << std::endl;
 }
@@ -47,7 +48,13 @@ void MappingFSM::arrayToMatrixConversion() {
 
     invCameraMatrix = cameraMatrix.inverse();
 }
-
+void MappingFSM::homeCallback(const mavros_msgs::HomePosition& msg){
+    home_quat.x() = msg.orientation.x;
+    home_quat.y() = msg.orientation.y;
+    home_quat.z() = msg.orientation.z;
+    home_quat.w() = msg.orientation.w;
+    home_quat.inverse();
+}
 void MappingFSM::convertFrames(const segmentation::drone_way& msg, Eigen::Vector3d& possible_obj) {
     // possible_obj contains the waypoint coordinates in the global frame
     
@@ -90,8 +97,8 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     }
 
     double delta = std::min(std::abs(0.5*msg.theta), 0.52);
-    // yaw = msg.theta > 0 ? yaw + delta : yaw - delta;
-    yaw += msg.theta;
+    yaw = msg.theta > 0 ? yaw + delta : yaw - delta;
+    // yaw += msg.theta;
 
     quat.setRPY(roll, pitch, yaw_c_);
     pose.pose.orientation.x = double(quat.x());
@@ -130,7 +137,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         pose.pose.orientation.y = double(quat.y());
         pose.pose.orientation.z = double(quat.z());
         pose.pose.orientation.w = double(quat.w());
-        // way_pub_.publish(pose);
+        way_pub_.publish(pose);
         return;
     }
     // Before publishing set current objective to the waypoint.
@@ -140,7 +147,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     pose.pose.position.x = current_obj_(0);
     pose.pose.position.y = current_obj_(1);
     pose.pose.position.z = current_obj_(2);
-    // way_pub_.publish(pose);
+    way_pub_.publish(pose);
     std::cout << "---------------------------------------------" << std::endl;
     return;
 }
@@ -158,7 +165,8 @@ void MappingFSM::odomCallback(const nav_msgs::Odometry& msg) {
     tf::Quaternion q(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
                    msg.pose.pose.orientation.z, msg.pose.pose.orientation.w);
     Eigen::Quaterniond quat = Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z());
-    quadOrientationMatrix = quat.normalized().toRotationMatrix().inverse();
+    //quat = quat * home_quat;
+    quadOrientationMatrix = quat.normalized().toRotationMatrix();
     translation_ = Eigen::Vector3d(msg.pose.pose.position.x, msg.pose.pose.position.y,
                       msg.pose.pose.position.z);
 }
