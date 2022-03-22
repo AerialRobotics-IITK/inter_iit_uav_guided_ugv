@@ -44,6 +44,9 @@ class MappingFSM {
     Eigen::Quaterniond quaternion_drone_;
     Eigen::Quaterniond home_quat;
     std::vector<Eigen::Vector3d> road_mean_path_;
+    Eigen::Vector3d cluster_mean_;
+    int cluster_count_;
+    float cluster_yaw_;
 
     Eigen::Matrix3d cameraMatrix, invCameraMatrix;
 		Eigen::Matrix3d cameraToQuadMatrix;

@@ -1,7 +1,7 @@
 #include <segmentation/mapping_fsm.hpp>
 #define OUT_TOPIC "/mavros/setpoint_position/local"
 #define CLOSENESS_PARAM 1.0
-#define PAUSE_WAIT_TIME 2
+#define PAUSE_WAIT_TIME 1
 namespace mapping_fsm {
 
 MappingFSM::MappingFSM() {
@@ -12,9 +12,11 @@ MappingFSM::MappingFSM() {
     current_obj_.setZero();
     possible_obj_.setZero();
     translation_.setZero();
+    cluster_mean_.setZero();
     pause_count_ = 0;
     close_to_obj_ = false;
     yaw_c_ = -999.0;  // initialize with absurd value
+    cluster_count_ = 0;
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
     waypoint_file.open("/home/rbaijal/ROS_WS/drdo22_ws/src/inter_iit_uav_guided_ugv/maps/world.csv", std::ios::out | std::ios::app);
@@ -142,7 +144,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         pose.pose.orientation.y = double(quat.y());
         pose.pose.orientation.z = double(quat.z());
         pose.pose.orientation.w = double(quat.w());
-        way_pub_.publish(pose);
+
 
         if(msg.corrective == 0) {
             waypoint_file << possible_obj_(0) << ", " 
@@ -150,6 +152,64 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
                             << possible_obj_(2) << ", "
                             << yaw_c_ << "\n";
         }
+
+        Eigen::Vector3d p_obj = possible_obj_;
+        p_obj(2) += 18.0;
+
+        std:: cout << "NORM IS AS FOLLOWS : " << (cluster_mean_ - p_obj).norm() << std::endl;
+        if((cluster_mean_ - p_obj).norm() < 6.0) {
+            cluster_mean_ = (cluster_mean_ * cluster_count_ + p_obj)/ (float(cluster_count_ + 1));
+
+            yaw = msg.theta > 0 ? yaw - delta : yaw + delta;
+            cluster_yaw_ = (cluster_yaw_ * cluster_count_ + yaw) / (float(cluster_count_ + 1));
+
+            cluster_count_++;
+            std::cout << "cluster count is : " << cluster_count_;
+        }
+        else {
+            cluster_count_ = 1;
+            cluster_mean_ = possible_obj_;
+            cluster_mean_(2) += 18.0;
+
+            yaw = msg.theta > 0 ? yaw - delta : yaw + delta;
+            cluster_yaw_ = yaw;
+        }
+
+        if(cluster_count_ > 5) {
+            float dist = 5.0;
+            std::cout << "GETTING A CLUSTER NOW!! " << std::endl;
+            float x = dist * cos(cluster_yaw_);
+            float y = dist * sin(cluster_yaw_);
+
+
+            yaw_c_ = cluster_yaw_;
+            quat.setRPY(roll, pitch, yaw_c_);
+            pose.pose.orientation.x = double(quat.x());
+            pose.pose.orientation.y = double(quat.y());
+            pose.pose.orientation.z = double(quat.z());
+            pose.pose.orientation.w = double(quat.w());
+
+            Eigen::Vector3d quad_frame_coords;
+            quad_frame_coords(0) = x;
+            quad_frame_coords(1) = y;
+            quad_frame_coords(2) = 0;
+            float z = possible_obj_(2);
+            possible_obj_ = quadOrientationMatrix * quad_frame_coords + translation_;
+            possible_obj_(2) = z;
+
+            road_mean_path_.pop_back();
+            road_mean_path_.push_back(possible_obj_);
+
+            pose.pose.position.x = possible_obj_(0);
+            pose.pose.position.y = possible_obj_(1);
+            pose.pose.position.z = possible_obj_(2) + 18.0;
+
+            std::cout << "U TURN PL0X : " << possible_obj_(0) << ", " << possible_obj_(1) << ", " << possible_obj_(2) << std::endl;
+        }
+
+        std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++=" << std::endl;
+        way_pub_.publish(pose);
+
         return;
     }
     // Before publishing set current objective to the waypoint.
