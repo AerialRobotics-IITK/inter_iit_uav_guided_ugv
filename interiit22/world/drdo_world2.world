@@ -48,11 +48,11 @@
         </camera>
       </gui>
   
-      <model name="iris">
+      <!-- <model name="iris">
         <include>
           <uri>model://drone_with_depth_camera</uri>
         </include>
         <pose> 103.776917 -101.472992 17.318562 -0.054656 0.032451 2.460081</pose>
-      </model>  
+      </model>   -->
     </world>
   </sdf>
