@@ -17,6 +17,8 @@ MappingFSM::MappingFSM() {
     yaw_c_ = -999.0;  // initialize with absurd value
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
+    waypoint_file.open("/home/rbaijal/ROS_WS/drdo22_ws/src/inter_iit_uav_guided_ugv/maps/world.csv", std::ios::out | std::ios::app);
+
 
     // set parameters
     std::cout << "Getting params" << std::endl;
@@ -31,8 +33,6 @@ MappingFSM::MappingFSM() {
     way_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(OUT_TOPIC, 1);
     odom_sub_ = nh_.subscribe("/mavros/local_position/odom", 1, &MappingFSM::odomCallback, this);
     quat_to_sub = nh_.subscribe("/mavros/home_position/home",1, &MappingFSM::homeCallback,this);
-
-    // waypoint_file.open("~/ROS_WS/drdo22_ws/src/inter_iit_uav_guided_ugv/maps/world2.csv", std::ios::out | std::ios::app);
 
     std::cout << "CONSTRUCTOR : Done" << std::endl;
 }
@@ -127,7 +127,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         std::cout << "Reached waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
         std::cout << "[FSM] Next Waypoint received." << std::endl;
         std::cout << atan2(possible_obj_(1) - current_obj_(1), possible_obj_(0) - current_obj_(0)) << std::endl;
-        if(isnan(possible_obj_(0)) || isnan(possible_obj_(1)) || isnan(possible_obj_(2))) {
+        if(possible_obj_(0) < -9000.0 && possible_obj_(1) < -9000.0 && possible_obj_(2) < -9000.0) {
             possible_obj_ = current_obj_;
         }
         // float xc = -(possible_obj_(1) - coord_drone_(1)) + coord_drone_(0);
@@ -144,12 +144,12 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         pose.pose.orientation.w = double(quat.w());
         way_pub_.publish(pose);
 
-        // if(msg.corrective == 0) {
-        //     waypoint_file << possible_obj_(0) << ", " 
-        //                     << possible_obj_(1) << ", " 
-        //                     << possible_obj_(2) << ", "
-        //                     << yaw_c_ << "\n";
-        // }
+        if(msg.corrective == 0) {
+            waypoint_file << possible_obj_(0) << ", " 
+                            << possible_obj_(1) << ", " 
+                            << possible_obj_(2) << ", "
+                            << yaw_c_ << "\n";
+        }
         return;
     }
     // Before publishing set current objective to the waypoint.

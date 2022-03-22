@@ -1,16 +1,16 @@
 #include <segmentation/road_seg.hpp>
 #define FRAC_SAMPLE 0.001          // Fraction of points to be sampled for use in computeAverageZ and computeDeltaZ
-#define MIN_POINTS_ROAD 35000      // Minimum number of points in a road segment. If less, then a penalty will be inposed.
+#define MIN_POINTS_ROAD 100000      // Minimum number of points in a road segment. If less, then a penalty will be inposed.
 #define DELTAZ_PARAM 1.35          // Minimum ratio of first and second lowest deltaZ values
 #define ROLLING_AVERAGE_PARAM 0.1  // Gamma for moving average
 #define SMALL_SIZE_PENALTY 30.0    // Penalty for small road candidates
 #define PERPENDICULAR_LIMIT 80.0
 #define AREA_THRESHOLD 0.85
-#define NEXT_WAYPOINT_DIS 0.2
-#define COUNTER_RECT_PARAM 1.25
+#define NEXT_WAYPOINT_DIS 0.03
+#define COUNTER_RECT_PARAM 1.30
 #define RECT_AHEAD_PARAM 0.9
 #define EIGEN_VAL_PARAM 1.4
-#define CORRECTIVE_PARAM 0.4
+#define CORRECTIVE_PARAM 0.04
 namespace road_detector {
 
 RoadDetector::RoadDetector()
@@ -220,8 +220,8 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     dir.x = p1.x - cntr.x;
     dir.y = p1.y - cntr.y;
     if(eigen_val_ratio<EIGEN_VAL_PARAM){
-       dir.x = ((dir.x + p2.x - cntr.x)/2)*CORRECTIVE_PARAM;  
-       dir.y = ((dir.y + p2.y - cntr.y)/2)*CORRECTIVE_PARAM;  
+       dir.x = ((dir.x + p2.x - cntr.x)/2);  
+       dir.y = ((dir.y + p2.y - cntr.y)/2);  
     }
     if ((-(dir.y)) < 0) {
         dir.x = (-dir.x);
@@ -235,8 +235,8 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     next_waypoint_.corrective = 0;
     if (get_perpendicular_distance(p1, image_center, cntr) > PERPENDICULAR_LIMIT) {
         float t = dir.x;
-        dir.x = dir.y;
-        dir.y = -t;
+        dir.x = dir.y*CORRECTIVE_PARAM;
+        dir.y = -t*CORRECTIVE_PARAM;
 
         if ((image_center.x - cntr.x) * (dir.x) + (image_center.y - cntr.y) * (dir.y) > 0) {
             dir.x = (-dir.x);
@@ -253,9 +253,21 @@ double RoadDetector::getOrientation(const std::vector<cv::Point>& pts, cv::Mat& 
     double angle = atan2(-dir.x, -dir.y);  // orientation in radians
 
     // Construct the waypoint
-    next_waypoint_.x = (*cloud_).at(waypoint.x, waypoint.y).x;
-    next_waypoint_.y = (*cloud_).at(waypoint.x, waypoint.y).y;
-    next_waypoint_.z = (*cloud_).at(waypoint.x, waypoint.y).z;
+    float x1, y1, z1;
+    x1 = (*cloud_).at(waypoint.x, waypoint.y).x;
+    y1 = (*cloud_).at(waypoint.x, waypoint.y).y;
+    z1 = (*cloud_).at(waypoint.x, waypoint.y).z;
+    int c1 = img_[min_alignment_idx].at<cv::Vec3b>(waypoint.y, waypoint.x)[0];
+    int c2 =img_[min_alignment_idx].at<cv::Vec3b>(waypoint.y, waypoint.x)[1];
+    int c3 =img_[min_alignment_idx].at<cv::Vec3b>(waypoint.y, waypoint.x)[2];
+    if((isnan(x1) || isnan(y1) || isnan(z1)) || (c1==0 && c2 == 0 && c3==0)){
+        x1 = 0;
+    }
+    else {
+        next_waypoint_.x = (*cloud_).at(waypoint.x, waypoint.y).x;
+        next_waypoint_.y = (*cloud_).at(waypoint.x, waypoint.y).y;
+        next_waypoint_.z = (*cloud_).at(waypoint.x, waypoint.y).z;
+    }
     next_waypoint_.theta = angle;
 
     // drawAxis(img, cntr, p2, cv::Scalar(255, 255,0 ), 5);
@@ -343,18 +355,31 @@ bool RoadDetector::applyMinRect(cv::Mat& thresh){
                     dirx = (-dirx);
                     diry = (-diry);
                 }
+                dirx = dirx*CORRECTIVE_PARAM;
+                diry = diry*CORRECTIVE_PARAM;
                 next_waypoint_.corrective = 1;
             }
 
             rect_point.x = center.x + RECT_AHEAD_PARAM*dirx;
             rect_point.y = center.y + RECT_AHEAD_PARAM*diry;
-            if(rect_point.x > img_[0].cols || rect_point.y > img_[0].rows){
+            if(rect_point.x > img_[0].cols || rect_point.y > img_[0].rows ||rect_point.x <0 || rect_point.y <0){
                 rect_point.x = center.x + RECT_AHEAD_PARAM*dirx/3.0;
                 rect_point.y = center.y + RECT_AHEAD_PARAM*diry/3.0;
             }
-            next_waypoint_.x = (*cloud_).at(rect_point.x, rect_point.y).x;
-            next_waypoint_.y = (*cloud_).at(rect_point.x, rect_point.y).y;
-            next_waypoint_.z = (*cloud_).at(rect_point.x, rect_point.y).z;
+
+            float x1, y1, z1;
+            x1 = (*cloud_).at(rect_point.x, rect_point.y).x;
+            y1 = (*cloud_).at(rect_point.x, rect_point.y).y;
+            z1 = (*cloud_).at(rect_point.x, rect_point.y).z;
+
+            if(isnan(x1) || isnan(y1) || isnan(z1)) {
+                x1 = 0;
+            }
+            else {
+                next_waypoint_.x = (*cloud_).at(rect_point.x, rect_point.y).x;
+                next_waypoint_.y = (*cloud_).at(rect_point.x, rect_point.y).y;
+                next_waypoint_.z = (*cloud_).at(rect_point.x, rect_point.y).z;
+            }
             next_waypoint_.theta = atan2(-dirx, -diry);
             cv::circle(img_[min_alignment_idx],center,5,cv::Scalar(255, 0, 0),cv::FILLED,cv::LINE_8 );
             cv::circle(img_[min_alignment_idx],rect_point,5,cv::Scalar(255, 255, 255),cv::FILLED,cv::LINE_8 );
@@ -442,9 +467,21 @@ void RoadDetector::meanPath() {
         waypoint.y=-1;
         cv::circle(img_[min_alignment_idx], waypoint, 3, cv::Scalar(255, 0, 255), 2);
         drawAxis(img_[min_alignment_idx],img_center,straight,cv::Scalar(0, 0, 0), 1);
-        next_waypoint_.x = (*cloud_).at(straight.x, straight.y).x;
-        next_waypoint_.y = (*cloud_).at(straight.x, straight.y).y;
-        next_waypoint_.z = (*cloud_).at(straight.x, straight.y).z;
+
+        float x1, y1, z1;
+
+        x1 = (*cloud_).at(straight.x, straight.y).x;
+        y1 = (*cloud_).at(straight.x, straight.y).y;
+        z1 = (*cloud_).at(straight.x, straight.y).z;
+
+        if(isnan(x1) || isnan(y1) || isnan(z1)) {
+            x1 = 0;
+        }
+        else {
+            next_waypoint_.x = (*cloud_).at(straight.x, straight.y).x;
+            next_waypoint_.y = (*cloud_).at(straight.x, straight.y).y;
+            next_waypoint_.z = (*cloud_).at(straight.x, straight.y).z;
+        }
         next_waypoint_.theta = 0;
         next_waypoint_.corrective = 0;
     }
