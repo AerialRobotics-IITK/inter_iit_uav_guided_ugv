@@ -57,7 +57,7 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     cv::Mat mask;
     cv::cvtColor(img, mask,cv::COLOR_RGB2GRAY);
     cv::GaussianBlur(mask, mask, cv::Size(5, 5), 0);
-    cv::inRange(mask,(0,0,0),(240,240,240),mask);
+    cv::inRange(mask,(0,0,0),(150,150,150),mask);
     cv::imshow("after gauss", mask);
     
     cv::threshold(mask,mask,50,255,cv::THRESH_BINARY);
