@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-
 import rospy
 import tf
 from nav_msgs.msg import Path
@@ -9,34 +7,7 @@ import numpy as np
 import pandas as pd
 import csv
 import math
-
-
-def frange(x, y, jump):
-    '''
-    finds the set of points for path generation using fixed jump parameters.
-    :params x : initial parameter value
-    :params y : final parameter value
-    :params jump : constant jump in parameter
-    '''
-    while x < y:
-        yield x
-        x += jump
-
-
-def set_params(x_offset, y_offset):
-    '''
-    Function to set params for path offset optionally
-
-    :params x_offset : Offset for x coordinate
-    :params y_offset : Offset for y coordinate
-
-    '''
-    print('Do you want to change the path offset')
-    if raw_input('Press y to change else press n : ') == 'y':
-        x_offset = raw_input('enter x offset:')
-        y_offset = raw_input('enter y offset:')
-
-    return x_offset, y_offset
+import os
 
 
 x_g = []
@@ -45,20 +16,16 @@ psi_g = []
 
 
 def main():
-    '''
-    gets path coordinates and publishes them in form of an array.
-
-    '''
     global x_g
     global y_g
     global psi_g
 
     x_offset = 0
     y_offset = 0
-    x_offset, y_offset = set_params(x_offset, y_offset)
-    rospy.init_node('astroid_curve_publisher')
+    print("Start")
+    rospy.init_node('waypoint_publisher')
 
-    path_pub = rospy.Publisher('astroid_path', Path, queue_size=100)
+    path_pub = rospy.Publisher('way_path', Path, queue_size=100)
     path = Path()
 
     path.header.frame_id = rospy.get_param('~output_frame', 'map')
@@ -74,19 +41,13 @@ def main():
         '~update_rate', 100)  # rate of path publishing
     has_initialize = True
     # loop to get the path coordinates
-
-    f = open("./world2.csv", 'r')
-    c =[]
+    file_path = os.path.abspath(os.path.dirname(__file__))
+    f = open("path_to_csv_file", 'r')
+    c = []
     for p in csv.reader(f):
         c.append(p)
     # for t in frange(0, 200, resolution):
     for t in range(len(c)):
-        # if t < 100:
-        #     # some offset can be used to ensure according to test conditions
-        #     x = int(offset_x) + t
-        #     y = int(offset_y)
-        # else:
-        #     y = y + t - 100
         x = int(offset_x) + t
         y = 2 * math.sin(x/20) + int(offset_y)
         if has_initialize:
@@ -130,10 +91,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    xnp = np.asarray(x_g)
-    psinp = np.asarray(psi_g)
-    ynp = np.asarray(y_g)
-    pd.DataFrame(xnp).to_csv("xnp.csv",  mode='w', header=False)
-    pd.DataFrame(psinp).to_csv("psinp.csv",  mode='w', header=False)
-    pd.DataFrame(ynp).to_csv("ynp.csv",  mode='w', header=False)
-    print("SAVING TO FILE")

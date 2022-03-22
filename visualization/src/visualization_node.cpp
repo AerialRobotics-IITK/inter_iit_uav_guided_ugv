@@ -20,7 +20,7 @@ void mean_path(visualization_msgs::Marker &points, visualization_msgs::Marker &l
   std::vector<std::vector<std::string>> content;
   std::vector<std::string> row;
   std::string line, word;
-  std::fstream file(("/home/akshit/ros/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/testing/mean_path/world2/world2.csv"), std::ios::in);
+  std::fstream file(("path_of_your_csv_file"), std::ios::in);
   float f = 0.0;
   geometry_msgs::Point p;
   if (file.is_open())

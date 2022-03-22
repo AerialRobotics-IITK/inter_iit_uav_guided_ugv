@@ -4,8 +4,8 @@ void LocalizationNode::init(ros::NodeHandle& nh) {
     odom_sub_ = nh.subscribe("/mavros/local_position/odom", 1, &LocalizationNode::odomCallback, this);
     odom_pub_ = nh.advertise<nav_msgs::Odometry>("/prius_odom", 50);
     vel_pub_ = nh.advertise<geometry_msgs::Twist>("/prius_vel", 50);
-    setpt_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",50);
-    drone_vel_pub_ = nh.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel",50);
+    setpt_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 50);
+    drone_vel_pub_ = nh.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 50);
 
     // set parameters
     nh.getParam("/camera_matrix", camera_matrix_);
@@ -14,10 +14,9 @@ void LocalizationNode::init(ros::NodeHandle& nh) {
 
     arrayToMatrixConversion();
     debug_ = true;
-    previous_position_ = Eigen::Vector3d(0,0,1);
+    previous_position_ = Eigen::Vector3d(0, 0, 1);
     previous_time_ = 0;
     previous_yaw_ = 0;
-
 }
 
 void LocalizationNode::arrayToMatrixConversion() {
@@ -46,16 +45,15 @@ void LocalizationNode::odomCallback(const nav_msgs::Odometry& msg) {
 
 Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
     Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * point + camera_translation_vector_;
-    std::cout << "quad frame coordinates" << quad_frame_coordinates(0) << " " << quad_frame_coordinates(1) << " " << quad_frame_coordinates(2) << std::endl; 
-    Eigen::Vector3d map_frame_coordinates = quadOrientationMatrix * quad_frame_coordinates + translation_ ;
+    std::cout << "quad frame coordinates" << quad_frame_coordinates(0) << " " << quad_frame_coordinates(1) << " " << quad_frame_coordinates(2) << std::endl;
+    Eigen::Vector3d map_frame_coordinates = quadOrientationMatrix * quad_frame_coordinates + translation_;
 
     return map_frame_coordinates;
 }
 
 void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWheels, Eigen::Vector3d& centre) {
+    current_yaw_ = std::atan2((midPointOfFrontWheels(1) - centre(1)), (midPointOfFrontWheels(0) - centre(0)));
 
-    current_yaw_ = std::atan2((midPointOfFrontWheels(1) - centre(1)) , (midPointOfFrontWheels(0) - centre(0)));
-    
     std::cout << "yaw of prius" << current_yaw_ << std::endl;
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(current_yaw_);
     nav_msgs::Odometry odom;
@@ -75,7 +73,7 @@ void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPriu
     linearVelOfPrius.x = (current_position_(0) - previous_position_(0)) / (current_time_ - previous_time_);
     linearVelOfPrius.y = (current_position_(1) - previous_position_(1)) / (current_time_ - previous_time_);
     linearVelOfPrius.z = (current_position_(2) - previous_position_(2)) / (current_time_ - previous_time_);
-    
+
     prius_vel_.linear = linearVelOfPrius;
     prius_vel_.angular.z = (current_yaw_ - previous_yaw_) / (current_time_ - previous_time_);
     odom_.twist.twist.linear = linearVelOfPrius;
@@ -100,11 +98,9 @@ void LocalizationNode::publishVelocity() {
     int k = 2;
     geometry_msgs::TwistStamped drone_vel;
 
-    drone_vel.twist.linear.x = k*(odom_.pose.pose.position.x - odom_drone_.pose.pose.position.x) + prius_vel_.linear.x;
-    drone_vel.twist.linear.y = k*(odom_.pose.pose.position.y - odom_drone_.pose.pose.position.y) + prius_vel_.linear.y;
-    drone_vel.twist.angular.z = prius_vel_.angular.z + 1*(current_yaw_ - drone_yaw_);
-
+    drone_vel.twist.linear.x = k * (odom_.pose.pose.position.x - odom_drone_.pose.pose.position.x) + prius_vel_.linear.x;
+    drone_vel.twist.linear.y = k * (odom_.pose.pose.position.y - odom_drone_.pose.pose.position.y) + prius_vel_.linear.y;
+    drone_vel.twist.angular.z = prius_vel_.angular.z + 1 * (current_yaw_ - drone_yaw_);
 
     drone_vel_pub_.publish(drone_vel);
-
 }

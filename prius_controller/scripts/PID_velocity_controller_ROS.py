@@ -17,7 +17,6 @@ tar_vel = 1
 global tar_omega
 global tar_delta
 gear_stat = "F"
-# target omega
 tar_delta = 0
 active_vel = 0  # current velocity of robot
 error_sum = 0
@@ -35,10 +34,6 @@ brake_threshold = 20  # threshold for brake
 
 
 def prius_pub(data):
-    '''
-    publishes the velocity and steering angle
-    published on topic : ackermann_cmd_topic
-    '''
     global prius_vel
     prius_vel = Control()
 
@@ -61,12 +56,6 @@ def prius_pub(data):
 
 
 def callback_feedback(data):
-    '''
-    Applies PID to velcity input from odom readings and publishes.
-    :params data [Odometry]
-    :params output [Twist]
-    :params plot [Twist] 
-    '''
     global active_vel
     global tar_vel
     global tar_delta
@@ -97,8 +86,6 @@ def callback_feedback(data):
                          data.pose.pose.orientation.z *
                          data.pose.pose.orientation.z)
     yaw = math.atan2(siny, cosy)
-    # dynamically changing tar_vel
-    # tar_vel = 13 - 0.3 * abs(yaw)
 
     last_recorded_vel = (data.twist.twist.linear.x * math.cos(yaw) +
                          data.twist.twist.linear.y * math.sin(yaw))
@@ -143,26 +130,8 @@ def callback_feedback(data):
     rospy.loginfo("linear velocity : %f", plot.linear.y)
     rospy.loginfo("target linear velocity : %f", plot.linear.x)
     rospy.loginfo("delta : %f", output.angular.z)
-    # global tar_vel
-    # tar_vel = 13 - (0.5 * abs(output.angular.z))
-    # if plot.linear.y < 2 and tar_vel < 2:
-    #     tar_vel = 3
-    # publish the msg
     prius_pub(output)
     pub1.publish(plot)
-
-
-# def callback_cmd_vel(delta):
-#     '''
-#     Subscribes from cmd_vel and gives target velocity
-#     :params delta [Twist]
-#     :params tar_vel [float]
-#     '''
-#     # global tar_vel
-#     # tar_vel = 15 - 0.3 * float(abs(delta))
-#     pass
-
-#     # smoothing the velocity and reducing it at greater turning angles.
 
 
 def callback_delta(data):
@@ -189,8 +158,6 @@ def start():
     rospy.init_node('controls', anonymous=True)
     pub = rospy.Publisher(ackermann_cmd_topic, Control, queue_size=10)
     pub1 = rospy.Publisher('plot', Twist, queue_size=10)
-    # rospy.Subscriber("cmd_vel_frenet", Twist, callback_cmd_vel)
-    # rospy.Subscriber("cmd_vel_frenet", String, callback_cmd_vel)
 
     rospy.Subscriber("cmd_delta", Twist, callback_delta)
     rospy.Subscriber("/prius_odom", Odometry, callback_feedback)
