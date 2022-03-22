@@ -153,29 +153,29 @@ echo 'export GAZEBO_MODEL_PATH=~/ardupilot_gazebo/models' >> ~/.bashrc
 
 In one Terminal (Terminal 1), run Gazebo:
 
-```
+```bash
 gazebo --verbose ~/ardupilot_gazebo/worlds/iris_arducopter_runway.world
 ```
 
 In another Terminal (Terminal 2), run SITL:
 
-```
-cd ~/ardupilot/ArduCopter/
+```bash
+cd ~/ardupilot/ArduCopter/bs
 sim_vehicle.py -v ArduCopter -f gazebo-iris --console
 ```
 
 ## Setup Workspace
 
-```
-mkdir drdo22_ws
-cd drdo22_ws
+```bash
+mkdir ~/drdo22_ws
+cd ~/drdo22_ws
 mkdir src
 catkin build
 ```
 
 Inside the src folder clone this repository
 
-```
+```bash
 git clone git@github.com:AerialRobotics-IITK/inter_iit_uav_guided_ugv.git
 ```
 
@@ -217,27 +217,52 @@ After
 
 ## Running the simulation environment
 
-1. The current files have paths set in accordance with the assumption that you have your ardupilot and ardupilot_gazebo in the home directory. If otherwise, head over to world.launch and change the ardupilot_gazebo_path.
+1. The current files have paths set in accordance with the assumption that you have your ardupilot and ardupilot_gazebo in the home directory. If otherwise, head over to world.launch and change the ardupilot_gazebo_path. For running the simulation after mapping in `~/drdo22_ws/src/inter_iit_uav_guided_ugv/interiit22/world/drdo_<world-name>.world`, change `model://<world_name>  ` to `model://<world_name>_mesh` at line 19.
 
-2. To start the simulation
+2. To start the UGV simulation:
+   ```bash
+   roslaunch interiit22 drdo_<world_name>.launch
+   ```
+3. For ArduCopter connection, in another terminal:
 
    ```bash
-   r
+   sim_vehicle.py -v ArduCopter -f gazebo-iris
    ```
 
-   
+   Wait until this print on the terminal
 
-3. Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close
+   ```
+   [ INFO] [1647367092.856149039, 63.285000000]: FCU: EKF2 IMU0 is using GPS
+   [ INFO] [1647367092.857438349, 63.286000000]: FCU: EKF2 IMU1 is using GPS
+   ```
 
-3. Start the launch file world.launch for world1 and in another terminal launch
+4. For drone takeoff:
 
-```
-sim_vehicle.py -v ArduCopter -f gazebo-iris
-```
+   Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
 
-4. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
+5. For Prius detection and localization, in another terminal run:
+   ```bash
+   roslaunch prius_detector default.launch
+   ```
+6. To publish the mean path extracted by the drone, in another terminal run:
+   ```bash
+   cd ~/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/scripts
+   python path_publisher.py
+   ```
+7. Run the pure persuit controller, in another terminal run:
+   ```bash
+   cd ~/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/scripts
+   python pure_pursuit_ros.py
+   ```
+8. To run the PID controller and the simulation, in another terminal run:
+   ```bash
+   cd ~/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/scripts
+   python PID_velocity_controller_ROS.py
+   ```
 
 ## Run Using offboard
+
+This can also be used to run the simulation environment and connect iris to ArduPilot. Also it arms the drone and takes off. (For recordings we have used QGC).
 
 `roslaunch offboard default.launch`
 
@@ -251,39 +276,3 @@ Wait until this print on the terminal
 then launch
 
 `roslaunch offboard offboard_node.launch`
-
-## Running the prius_controller
-
-Change the path of file world1.csv `(/prius_controller/testing/world1.csv)` in the file straight_file.py in line 83 corresponding to the location in your PC.
-
-Run the following python scripts in the written sequence
-
-```bash
-python straight_path.py
-python pure_pursuit_ros.py
-python PID_velocity_controller_ROS.py
-```
-
-## Saving Odometry
-
-To save the odometry of the vehicle run the script present in `prius_controller/testing/odometry`
-
-```bash
-python save_odometry.py
-```
-
-## Plotting the followed path
-
-Before running install the following dependencies
-
-```bash
-pip install pandas
-pip install matplotlib
-sudo apt-get install python3-tk
-```
-
-Then run the following script present in `prius_controller/testing/plot.py`
-
-```bash
-python3 plot.py
-```
