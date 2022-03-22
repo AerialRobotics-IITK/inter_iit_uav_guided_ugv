@@ -141,11 +141,9 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     std::cout << "camera frame prius: " << prius_center(0) << " " << prius_center(1) << " "<<prius_center(2)<< std::endl;
 
     // Eigen::Vector3d prius_center_global = localization.inMapFrame(prius_center);
-    // Eigen::Vector3d front_center_global = localization.inMapFrame(front_center);
-    
     
     Eigen::Vector3d prius_center_global = localization.inMapFrame(prius_center);
-
+    Eigen::Vector3d front_center_global = localization.inMapFrame(front_center);
 
     std::cout << "global frame coordinates" <<prius_center_global(0) << " " << prius_center_global(1) << " " << prius_center_global(2) << std::endl;
 
@@ -163,7 +161,10 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     // cv::imshow("Original", mask);
     cv::imshow("Center Detection", drawing);
     cv::waitKey(1);
-
+    
+    localization.getOrientationOfPrius(prius_center_global, front_center_global);
+    localization.getVelocityOfPrius(prius_center_global);
+    
     return;
 
 }
