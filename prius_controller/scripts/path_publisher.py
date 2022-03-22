@@ -42,7 +42,12 @@ def main():
     has_initialize = True
     # loop to get the path coordinates
     file_path = os.path.abspath(os.path.dirname(__file__))
-    f = open("path_to_csv_file", 'r')
+    print("Enter world number like 1 or 2")
+    world_number = input("Enter World Name: ")
+    world_name = "world" + str(world_number) +".csv"
+    path_to_csv = os.path.realpath(os.path.join(file_path, "..", "..","maps", world_name ))
+    print(path_to_csv)
+    f = open(path_to_csv, 'r')
     c = []
     for p in csv.reader(f):
         c.append(p)

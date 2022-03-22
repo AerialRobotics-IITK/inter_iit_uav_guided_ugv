@@ -298,7 +298,7 @@ then launch
 
 4. For drone takeoff:
 
-   Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
+   Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off. QGC automatically hovers the drone at 10m, ensure to manually increse the drone height to 16-18m.
 
 5. For Prius detection and localization, in another terminal run:
    ```bash
@@ -309,6 +309,7 @@ then launch
    cd ~/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/scripts
    python path_publisher.py
    ```
+      It will prompt to enter the world number. Enter 1 or 2.
 7. Run the pure persuit controller, in another terminal run:
    ```bash
    cd ~/drdo22_ws/src/inter_iit_uav_guided_ugv/prius_controller/scripts
