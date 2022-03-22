@@ -3,7 +3,7 @@
   <name>interiit22</name>
   <version>0.0.0</version>
   <description>The interiit22 package</description>
-  <maintainer email="maintainer@maintainer.com">maintainer</maintainer>
+  <maintainer email="todo@todo.com">10</maintainer>
   <license>TODO</license>
   <depend>std_msgs</depend>
   <build_export_depend>message_generation</build_export_depend>

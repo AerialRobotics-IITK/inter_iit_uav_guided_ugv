@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+    <rosparam file="$(find prius_detector)/cfg/params.yaml" />
+
+    <node pkg="prius_detector" type="prius_detector_node" name="prius_detector_node"       output="screen">
+            
+    </node>
+
+</launch>

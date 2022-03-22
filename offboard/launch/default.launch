@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="gui" default="true"/>
+    <arg name="verbose" default="true"/>
+
+    <include file="$(find interiit22)/launch/drdo_world1.launch"/>
+
+    <node pkg="offboard" type="sim_vehicle.sh" name="sim_vehicle_node"/>
+
+</launch>
