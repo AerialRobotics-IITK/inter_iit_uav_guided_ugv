@@ -49,7 +49,7 @@ class LocalizationNode {
 
     Eigen::Vector3d previous_position_, current_position_;
     double previous_time_ , current_time_;
-    double current_yaw_, previous_yaw_;
+    double current_yaw_, previous_yaw_, drone_yaw_;
 
     bool debug_;
     std::vector<float> camera_to_quad_matrix_, camera_translation_, camera_matrix_;

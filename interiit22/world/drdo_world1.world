@@ -52,7 +52,7 @@
         <include>
           <uri>model://drone_with_depth_camera</uri>
         </include>
-        <pose> -10.820319 307.976703 23 0.011338 0.135709 -2.161422</pose>
+        <pose> -12.820319 307.976703 24 0.011338 0.135709 -2.161422</pose>
       </model>  
     </world>
   </sdf>

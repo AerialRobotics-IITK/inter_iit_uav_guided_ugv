@@ -38,6 +38,10 @@ void LocalizationNode::odomCallback(const nav_msgs::Odometry& msg) {
     Eigen::Quaterniond quat = Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z());
     quadOrientationMatrix = quat.normalized().toRotationMatrix();
     translation_ = Eigen::Vector3d(msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z);
+
+    double roll, pitch, yaw;
+    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+    drone_yaw_ = yaw;
 }
 
 Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
@@ -93,12 +97,13 @@ void LocalizationNode::publishSetPoint() {
 }
 
 void LocalizationNode::publishVelocity() {
-    int k = 2;
+    int k = 7;
     geometry_msgs::TwistStamped drone_vel;
 
     drone_vel.twist.linear.x = k*(odom_.pose.pose.position.x - odom_drone_.pose.pose.position.x) + prius_vel_.linear.x;
     drone_vel.twist.linear.y = k*(odom_.pose.pose.position.y - odom_drone_.pose.pose.position.y) + prius_vel_.linear.y;
-    drone_vel.twist.angular.z = prius_vel_.angular.z;
+    drone_vel.twist.angular.z = prius_vel_.angular.z + k*(current_yaw_ - drone_yaw_);
+
 
     drone_vel_pub_.publish(drone_vel);
 

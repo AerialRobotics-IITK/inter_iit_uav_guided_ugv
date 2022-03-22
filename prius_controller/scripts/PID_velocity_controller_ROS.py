@@ -144,9 +144,9 @@ def callback_feedback(data):
     rospy.loginfo("target linear velocity : %f", plot.linear.x)
     rospy.loginfo("delta : %f", output.angular.z)
     # global tar_vel
-    tar_vel = 13 - (0.5 * abs(output.angular.z))
-    if plot.linear.y < 2 and tar_vel < 2:
-        tar_vel = 3
+    # tar_vel = 13 - (0.5 * abs(output.angular.z))
+    # if plot.linear.y < 2 and tar_vel < 2:
+    #     tar_vel = 3
     # publish the msg
     prius_pub(output)
     pub1.publish(plot)
