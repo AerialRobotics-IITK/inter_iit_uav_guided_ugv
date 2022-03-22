@@ -61,3 +61,60 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris
 4. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off
 
 ---
+
+
+
+# Segmentation
+
+## Installation Instructions:
+
+* Install PCL<br/>
+    ```
+    sudo apt-get update
+    sudo apt-get upgrade
+    sudo apt install libpcl-dev
+    ```
+
+## Running the simulation for mapping and exploration:
+
+1. Launch QGC and go to the safety settings, scroll to the bottom and uncheck the "all" option in arming safety checks. Just tick the GPS lock option and close.
+
+2. Start the launch file world.launch for world1 and in another terminal launch.
+
+```
+roslaunch interiit22 ${world}.launch
+sim_vehicle.py -v ArduCopter -f gazebo-iris
+```
+
+3. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off.
+
+4. In another terminal run the following command to run ```road_seg_node``` and ```mapping_fsm_node```.
+
+```
+rosrun segmentation road_seg_node
+rosrun mapping mapping_fsm_node
+```
+
+## Main Nodes
+
+* road_seg_node
+* mapping_fsm_node
+
+## Main Topics
+
+### 1. road_seg_node:
+* Subscribed topics:-
+    * /depth camera/rgb/image raw: Gets the raw RGB image from the camera
+    * /depth camera/depth/points: Gets the pointcloud from the depth camera
+
+* Published topics:-
+    * /image/road seg : Image of the segmented road
+    * /drone way : The next waypoint in the drone frame
+
+### 2. mapping fsm node
+* Subscribed topics:-
+    * /drone way : Gets the next waypoint in the drone frame.
+    * /mavros/local position/odom : Odometry of the drone
+    * /mavros/home position/home : Odometry of the home position
+* Published topics:-
+    * /mavros/setpoint position/local : For publishing waypoints in the ground frame.
