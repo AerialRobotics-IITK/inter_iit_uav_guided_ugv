@@ -1,4 +1,4 @@
-# inter_iit_uav_guided_ugv
+# Team10_uav_guided_ugv
 
 # Installation
 
@@ -227,6 +227,7 @@ After
     sudo apt-get install ros-melodic-pcl-ros ros-melodic-pcl-conversions ros-melodic-pcl-msgs
     sudo apt-get install ros-melodic-eigen-conversions
     ```
+* Change the path of the generated map csv file at line number 20 in the file named `mapping_fsm` inside `~/drdo22_ws/inter_iit_uav_guided_ugv/segmentation/src/mapping_fsm.cpp`. Set it to `~/drdo22_ws/inter_iit_uav_guided_ugv/maps/<world_name>.csv`.
 
 ## Running the simulation for mapping and exploration:
 

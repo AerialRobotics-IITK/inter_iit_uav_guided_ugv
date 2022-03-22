@@ -17,7 +17,7 @@ MappingFSM::MappingFSM() {
     yaw_c_ = -999.0;  // initialize with absurd value
 
     road_mean_path_.push_back(current_obj_); // First waypoint is origin
-    waypoint_file.open("/home/rbaijal/ROS_WS/drdo22_ws/src/inter_iit_uav_guided_ugv/maps/world.csv", std::ios::out | std::ios::app);
+    waypoint_file.open("path_to_csv_file", std::ios::out | std::ios::app);
 
 
     // set parameters
