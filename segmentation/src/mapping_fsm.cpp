@@ -1,7 +1,7 @@
 #include <segmentation/mapping_fsm.hpp>
 #define OUT_TOPIC "/mavros/setpoint_position/local"
 #define CLOSENESS_PARAM 1.0
-#define PAUSE_WAIT_TIME 10
+#define PAUSE_WAIT_TIME 2
 namespace mapping_fsm {
 
 MappingFSM::MappingFSM() {
@@ -31,6 +31,8 @@ MappingFSM::MappingFSM() {
     way_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(OUT_TOPIC, 1);
     odom_sub_ = nh_.subscribe("/mavros/local_position/odom", 1, &MappingFSM::odomCallback, this);
     quat_to_sub = nh_.subscribe("/mavros/home_position/home",1, &MappingFSM::homeCallback,this);
+
+    // waypoint_file.open("~/ROS_WS/drdo22_ws/src/inter_iit_uav_guided_ugv/maps/world2.csv", std::ios::out | std::ios::app);
 
     std::cout << "CONSTRUCTOR : Done" << std::endl;
 }
@@ -85,7 +87,7 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
     pose.pose.position.z = possible_obj_(2);
 
     current_obj_ = road_mean_path_[road_mean_path_.size() - 1];
-    current_obj_(2) += 15.0; // need to be 15m above the road
+    current_obj_(2) += 18.0; // need to be 15m above the road
 
     tf::Quaternion quat(quaternion_drone_.x(), quaternion_drone_.y(), quaternion_drone_.z(), quaternion_drone_.w());
     double roll, pitch, yaw;
@@ -125,6 +127,9 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         std::cout << "Reached waypoint " << road_mean_path_.size() << " : " << current_obj_(0) << ", " << current_obj_(1) << ", " << current_obj_(2) <<std::endl;
         std::cout << "[FSM] Next Waypoint received." << std::endl;
         std::cout << atan2(possible_obj_(1) - current_obj_(1), possible_obj_(0) - current_obj_(0)) << std::endl;
+        if(isnan(possible_obj_(0)) || isnan(possible_obj_(1)) || isnan(possible_obj_(2))) {
+            possible_obj_ = current_obj_;
+        }
         // float xc = -(possible_obj_(1) - coord_drone_(1)) + coord_drone_(0);
         // float yc = -(possible_obj_(0) - coord_drone_(0)) + coord_drone_(1);
         // possible_obj_(0) = xc;
@@ -138,6 +143,13 @@ void MappingFSM::wayCallback(const segmentation::drone_way& msg) {
         pose.pose.orientation.z = double(quat.z());
         pose.pose.orientation.w = double(quat.w());
         way_pub_.publish(pose);
+
+        // if(msg.corrective == 0) {
+        //     waypoint_file << possible_obj_(0) << ", " 
+        //                     << possible_obj_(1) << ", " 
+        //                     << possible_obj_(2) << ", "
+        //                     << yaw_c_ << "\n";
+        // }
         return;
     }
     // Before publishing set current objective to the waypoint.

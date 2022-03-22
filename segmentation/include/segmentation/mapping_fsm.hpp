@@ -14,6 +14,8 @@
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
+
+#include <fstream>
 // #include <LinearMath/btMatrix3x3.h>
 
 namespace mapping_fsm {
@@ -34,6 +36,7 @@ class MappingFSM {
     int pause_count_;
     bool close_to_obj_;
     float yaw_c_;
+    std::fstream waypoint_file;
     Eigen::Vector3d coord_drone_;
     Eigen::Vector3d current_obj_;
     Eigen::Vector3d possible_obj_;
