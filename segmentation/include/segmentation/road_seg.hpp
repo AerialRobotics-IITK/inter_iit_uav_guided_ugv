@@ -65,8 +65,10 @@ class RoadDetector {
     double getOrientation(const std::vector<cv::Point>&, cv::Mat&);
     void meanPath();
     // Mean Path Helper Function
+    // float vectorClipFactor(cv::Point2f center, cv::Point2f current);
     float computeAverageZ(pcl::PointCloud<PointT>::Ptr& cloud, pcl::PointIndices::Ptr inliers, float fraction, int i);
     std::vector<int> randomPick(int N, int k);
+    bool applyMinRect(cv::Mat& thresh);
     float get_perpendicular_distance(cv::Point p1, cv::Point image_center, cv::Point p2);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_{new pcl::PointCloud<pcl::PointXYZRGB>};
     pcl::PCLPointCloud2 pcl_pc2;
@@ -81,7 +83,8 @@ class RoadDetector {
     std::map<int, float> averageZ;
     float prevZ;
     int min_alignment_idx;
-
+    std::vector<std::vector<cv::Point> > contours;
+    std::vector<cv::Vec4i> hierarchy;
     std::random_device rd;
     std::unordered_set<int> elems;
     cv_bridge::CvImagePtr road_img_ptr;
