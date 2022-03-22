@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>visualization</name>
-  <version>0.0.0</versin>
+  <version>0.0.0</version>
   <description>The visualization package</description>
 
   <maintainer email="todo@todo.com">10</maintainer>
