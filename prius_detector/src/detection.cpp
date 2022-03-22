@@ -135,6 +135,13 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     fcenter.y /= 2;
     std::cout<<"x : "<<center.x<<" y : "<<center.y<<"\n";
 
+    if(fcenter.x<0||fcenter.y<0||fcenter.x>640||fcenter.y>480){
+        return;
+    }
+    if(center.x<0||center.y<0||center.x>640||center.y>480){
+        return;
+    }
+
     Eigen::Vector3d prius_center = inCameraFrame(center.x, center.y);
     Eigen::Vector3d front_center = inCameraFrame(fcenter.x, fcenter.y); 
 

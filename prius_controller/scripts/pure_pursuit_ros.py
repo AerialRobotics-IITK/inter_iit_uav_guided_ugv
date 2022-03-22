@@ -315,7 +315,7 @@ def start():
     pub1 = rospy.Publisher('cmd_delta', Twist, queue_size=100)
     pub3 = rospy.Publisher("list", String, queue_size=100)
     # pub4 = rospy.Publisher("cmd_vel_frenet", String, queue_size=10)
-    rospy.Subscriber("base_pose_ground_truth", Odometry, callback_feedback)
+    rospy.Subscriber("/prius_odom", Odometry, callback_feedback)
     rospy.Subscriber("astroid_path", Path, callback_path)
 
     rospy.spin()

@@ -13,7 +13,7 @@ from std_msgs.msg import String
 # Subscribed topic - base_pose_ground_truth , cmd_vel, cmd_delta
 
 global pub
-tar_vel = 13
+tar_vel = 1
 global tar_omega
 global tar_delta
 gear_stat = "F"
@@ -193,7 +193,7 @@ def start():
     # rospy.Subscriber("cmd_vel_frenet", String, callback_cmd_vel)
 
     rospy.Subscriber("cmd_delta", Twist, callback_delta)
-    rospy.Subscriber("base_pose_ground_truth", Odometry, callback_feedback)
+    rospy.Subscriber("/prius_odom", Odometry, callback_feedback)
     rospy.Subscriber("list", String, stop)
 
     rospy.spin()
