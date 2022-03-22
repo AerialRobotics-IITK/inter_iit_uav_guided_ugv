@@ -97,12 +97,12 @@ void LocalizationNode::publishSetPoint() {
 }
 
 void LocalizationNode::publishVelocity() {
-    int k = 7;
+    int k = 2;
     geometry_msgs::TwistStamped drone_vel;
 
     drone_vel.twist.linear.x = k*(odom_.pose.pose.position.x - odom_drone_.pose.pose.position.x) + prius_vel_.linear.x;
     drone_vel.twist.linear.y = k*(odom_.pose.pose.position.y - odom_drone_.pose.pose.position.y) + prius_vel_.linear.y;
-    drone_vel.twist.angular.z = prius_vel_.angular.z + k*(current_yaw_ - drone_yaw_);
+    drone_vel.twist.angular.z = prius_vel_.angular.z + 1*(current_yaw_ - drone_yaw_);
 
 
     drone_vel_pub_.publish(drone_vel);
