@@ -239,12 +239,15 @@ roslaunch interiit22 ${world}.launch
 sim_vehicle.py -v ArduCopter -f gazebo-iris
 ```
 
-3. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off.
+3. Delete Prius from the world after gazebo is launched.
 
-4. In another terminal run the following command to run ```road_seg_node``` and ```mapping_fsm_node```.
+4. Wait for GPS lock, and then launch QGC to manually arm the drone for take-off.
+
+5. In another terminal run the following command to run ```road_seg_node``` and ```mapping_fsm_node```. Running ```default.launch``` downloads certain modules necessary for running the nodes. 
 
 ```
 rosrun segmentation road_seg_node
+roslaunch segmentation default.launch
 rosrun mapping mapping_fsm_node
 ```
 
