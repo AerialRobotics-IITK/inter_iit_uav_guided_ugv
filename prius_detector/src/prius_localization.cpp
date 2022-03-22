@@ -34,12 +34,13 @@ void LocalizationNode::odomCallback(const nav_msgs::Odometry& msg) {
     odom_ = msg;
     tf::Quaternion q(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w);
     Eigen::Quaterniond quat = Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z());
-    quadOrientationMatrix = quat.normalized().toRotationMatrix().inverse();
+    quadOrientationMatrix = quat.normalized().toRotationMatrix();
     translation_ = Eigen::Vector3d(msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z);
 }
 
 Eigen::Vector3d LocalizationNode::inMapFrame(Eigen::Vector3d& point) {
-    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * point;
+    Eigen::Vector3d quad_frame_coordinates = cameraToQuadMatrix * point + camera_translation_vector_;
+    std::cout << "quad frame coordinates" << quad_frame_coordinates(0) << " " << quad_frame_coordinates(1) << " " << quad_frame_coordinates(2) << std::endl; 
     Eigen::Vector3d map_frame_coordinates = quadOrientationMatrix * quad_frame_coordinates + translation_ ;
 
     return map_frame_coordinates;
@@ -83,5 +84,5 @@ void LocalizationNode::publishSetPoint() {
     geometry_msgs::PoseStamped set_pt;
     set_pt.pose = odom_.pose.pose;
     set_pt.pose.position.z = 18;
-    setpt_pub_.publish(set_pt);
+    // setpt_pub_.publish(set_pt);
 }
