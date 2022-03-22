@@ -1,4 +1,4 @@
-# Team10_uav_guided_ugv
+# Team 10: DRDO's UAV Guided UGV navigation challenge
 
 # Installation
 
