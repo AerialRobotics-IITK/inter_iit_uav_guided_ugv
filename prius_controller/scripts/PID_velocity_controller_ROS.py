@@ -152,17 +152,17 @@ def callback_feedback(data):
     pub1.publish(plot)
 
 
-def callback_cmd_vel(delta):
-    '''
-    Subscribes from cmd_vel and gives target velocity
-    :params delta [Twist]
-    :params tar_vel [float]
-    '''
-    # global tar_vel
-    # tar_vel = 15 - 0.3 * float(abs(delta))
-    pass
+# def callback_cmd_vel(delta):
+#     '''
+#     Subscribes from cmd_vel and gives target velocity
+#     :params delta [Twist]
+#     :params tar_vel [float]
+#     '''
+#     # global tar_vel
+#     # tar_vel = 15 - 0.3 * float(abs(delta))
+#     pass
 
-    # smoothing the velocity and reducing it at greater turning angles.
+#     # smoothing the velocity and reducing it at greater turning angles.
 
 
 def callback_delta(data):

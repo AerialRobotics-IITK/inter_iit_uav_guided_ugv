@@ -261,18 +261,18 @@ def pure_pursuit(goal_point, prev_point):
 
     # adding the feedback part
     # adding e for integral controller
-    sum_e += get_e([x_bot, y_bot], goal_point, prev_point)
-    e_la = get_e([x_bot, y_bot], goal_point, prev_point) + \
-        (wheelbase/2 + d_lookahead) * math.sin(Delta_pp - curr_steer)
-    print("e: ", get_e([x_bot, y_bot], goal_point, prev_point))
-    delta_p = Kp * e_la
-    print("delta_p: ", delta_p)
-    delta_i = Ki * sum_e
-    print("delta_i: ", delta_i)
-    delta_curr = Kpp * Delta_pp + delta_p + delta_i
-    # delta_curr = Delta_pp
-    print("delta_curr: ", delta_curr)
-    delta = 0
+    # sum_e += get_e([x_bot, y_bot], goal_point, prev_point)
+    # e_la = get_e([x_bot, y_bot], goal_point, prev_point) + \
+    #     (wheelbase/2 + d_lookahead) * math.sin(Delta_pp - curr_steer)
+    # print("e: ", get_e([x_bot, y_bot], goal_point, prev_point))
+    # delta_p = Kp * e_la
+    # print("delta_p: ", delta_p)
+    # delta_i = Ki * sum_e
+    # print("delta_i: ", delta_i)
+    # delta_curr = Kpp * Delta_pp + delta_p + delta_i
+    # # delta_curr = Delta_pp
+    # print("delta_curr: ", delta_curr)
+    # delta = 0
     # if len(delta_prev) == l-1 :
     #     for prev in delta_prev:
     #         delta+=  w_prev * prev + w_current * delta_curr
@@ -285,12 +285,12 @@ def pure_pursuit(goal_point, prev_point):
     #     delta_prev.pop(0)
     #     delta_prev.append(delta)
     # delta = w_prev * delta_prev + w_current * delta_curr
-    delta = delta_curr
-    print("w_curr: ", w_current)
-    print("w_prev: ", w_prev)
-    # delta_prev = delta
-    print('delta', delta)
-    pub4.publish(Delta_pp)
+    # delta = delta_curr
+    # print("w_curr: ", w_current)
+    # print("w_prev: ", w_prev)
+    # # delta_prev = delta
+    # print('delta', delta)
+    # pub4.publish(Delta_pp)
     return Delta_pp
 
 
@@ -314,7 +314,7 @@ def start():
     pub2 = rospy.Publisher('cross_track_error', Twist, queue_size=100)
     pub1 = rospy.Publisher('cmd_delta', Twist, queue_size=100)
     pub3 = rospy.Publisher("list", String, queue_size=100)
-    pub4 = rospy.Publisher("cmd_vel_frenet", String, queue_size=10)
+    # pub4 = rospy.Publisher("cmd_vel_frenet", String, queue_size=10)
     rospy.Subscriber("base_pose_ground_truth", Odometry, callback_feedback)
     rospy.Subscriber("astroid_path", Path, callback_path)
 
