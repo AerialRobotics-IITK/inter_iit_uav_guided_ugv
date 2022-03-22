@@ -143,7 +143,7 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     // Eigen::Vector3d prius_center_global = localization.inMapFrame(prius_center);
     
     Eigen::Vector3d prius_center_global = localization.inMapFrame(prius_center);
-    // Eigen::Vector3d front_center_global = localization.inMapFrame(front_center);
+    Eigen::Vector3d front_center_global = localization.inMapFrame(front_center);
 
     std::cout << "global frame coordinates" <<prius_center_global(0) << " " << prius_center_global(1) << " " << prius_center_global(2) << std::endl;
 
@@ -162,8 +162,8 @@ void prius_callback_rgb(const sensor_msgs::ImageConstPtr& msg){
     cv::imshow("Center Detection", drawing);
     cv::waitKey(1);
     
-    // localization.getOrientationOfPrius(prius_center_global, front_center_global);
-    // localization.getVelocityOfPrius(prius_center_global);
+    localization.getOrientationOfPrius( front_center_global, prius_center_global);
+    localization.getVelocityOfPrius(prius_center_global);
     
     return;
 
@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
 
     localization.init(nh);
 
-	ros::Rate loop_rate(20);
+	ros::Rate loop_rate(50);
 	while (ros::ok()) {
 		ros::spinOnce();
 		loop_rate.sleep();

@@ -54,11 +54,11 @@ void LocalizationNode::getOrientationOfPrius(Eigen::Vector3d& midPointOfFrontWhe
     std::cout << "yaw of prius" << yaw << std::endl;
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(yaw);
     nav_msgs::Odometry odom;
-    odom.pose.pose.position.x = centre(0);
-    odom.pose.pose.position.y = centre(1);
-    odom.pose.pose.position.z = centre(2);
-    odom.pose.pose.orientation = odom_quat;
-    odom_pub_.publish(odom);
+    odom_.pose.pose.position.x = centre(0);
+    odom_.pose.pose.position.y = centre(1);
+    odom_.pose.pose.position.z = centre(2);
+    odom_.pose.pose.orientation = odom_quat;
+    // odom_pub_.publish(odom);
 }
 
 void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPrius) {
@@ -73,7 +73,9 @@ void LocalizationNode::getVelocityOfPrius(Eigen::Vector3d& currentPositionOfPriu
     
     geometry_msgs::Twist velocityOfPrius;
     velocityOfPrius.linear = linearVelOfPrius;
+    odom_.twist.twist.linear = linearVelOfPrius;
     vel_pub_.publish(velocityOfPrius);
+    odom_pub_.publish(odom_);
 
     publishSetPoint();
     previous_position_ = current_position_;
@@ -84,5 +86,5 @@ void LocalizationNode::publishSetPoint() {
     geometry_msgs::PoseStamped set_pt;
     set_pt.pose = odom_.pose.pose;
     set_pt.pose.position.z = 18;
-    // setpt_pub_.publish(set_pt);
+    setpt_pub_.publish(set_pt);
 }
